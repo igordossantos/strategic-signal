@@ -71,6 +71,14 @@ Date: 2026-10-15
 - Section disclosure controls render before the section mark and title.
 - Mobile verification at 390 pixels shows no horizontal overflow.
 
+### Deployment record
+
+- Release: `1.1.0`
+- Release commit: `ac1ff36f2b4ee49249ac833c6ae5d2ce0f296cca`
+- GitHub Actions run: `38768101330`
+- Deployment result: successful
+- Production smoke test: personalized title and hero rendered, Priority signals navigation and dynamic customer selector loaded, both collapse controls verified on the left, no horizontal overflow
+
 ### Known boundaries
 
 - GitHub Pages cannot directly read authenticated LinkedIn content.
