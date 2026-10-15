@@ -78,6 +78,7 @@ export interface Signal {
   sourceIds: string[];
   links: SignalLink[];
   tags: string[];
+  hashtags?: string[];
   nextStep: string;
   relevance: RelevanceMapping[];
   protected: ProtectedClass[];
@@ -90,6 +91,7 @@ export interface Workspace {
   sources: Source[];
   guidance: Guidance[];
   pinnedSignalIds: string[];
+  itemTags: Record<string, string[]>;
 }
 
 export interface ArchiveRun {
@@ -136,6 +138,7 @@ export interface SignalFilters {
   section: string;
   audience: string;
   prioritySignal: string;
+  hashtag: string;
   archiveScope: "current" | "all" | "archive";
   status: string;
   evidence: string;

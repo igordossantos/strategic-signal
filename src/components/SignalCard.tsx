@@ -5,6 +5,7 @@ import {
   CalendarDays,
   ChevronDown,
   CircleAlert,
+  Hash,
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
@@ -18,8 +19,12 @@ interface SignalCardProps {
   sources: Source[];
   selectedAudience: string;
   selectedPrioritySignal: string;
+  selectedHashtag: string;
+  personalHashtags: string[];
   pinned: boolean;
   onTogglePinned: (id: string) => void;
+  onSelectHashtag: (hashtag: string) => void;
+  onEditHashtags: () => void;
 }
 
 const evidenceLabels = {
@@ -41,8 +46,12 @@ export function SignalCard({
   sources,
   selectedAudience,
   selectedPrioritySignal,
+  selectedHashtag,
+  personalHashtags,
   pinned,
   onTogglePinned,
+  onSelectHashtag,
+  onEditHashtags,
 }: SignalCardProps) {
   const [expanded, setExpanded] = useState(false);
   const relevance = signal.relevance.filter((item) => {
@@ -57,6 +66,8 @@ export function SignalCard({
   });
   const sourceLabel = sourceNames(signal, sources).join(" · ");
   const leadRelevance = relevance[0];
+  const personalSet = new Set(personalHashtags);
+  const hashtags = signal.hashtags ?? [];
 
   return (
     <article
@@ -102,6 +113,34 @@ export function SignalCard({
       <h3>{signal.title}</h3>
       <p className="signal-product">{signal.product}</p>
       <p className="signal-summary">{signal.summary}</p>
+
+      <div className="signal-hashtag-row">
+        <div aria-label="Signal hashtags">
+          {hashtags.slice(0, 5).map((hashtag) => (
+            <button
+              type="button"
+              key={hashtag}
+              className={`${personalSet.has(hashtag) ? "personal-hashtag" : ""}${selectedHashtag === hashtag ? " hashtag-active" : ""}`}
+              aria-pressed={selectedHashtag === hashtag}
+              onClick={() => onSelectHashtag(hashtag)}
+            >
+              #{hashtag}
+            </button>
+          ))}
+          {hashtags.length > 5 ? (
+            <span>+{hashtags.length - 5}</span>
+          ) : null}
+        </div>
+        <button
+          type="button"
+          className="edit-hashtags"
+          onClick={onEditHashtags}
+          aria-label={`Edit personal hashtags for ${signal.title}`}
+        >
+          <Hash size={14} aria-hidden="true" />
+          Tag
+        </button>
+      </div>
 
       {leadRelevance ? (
         <div className="relevance-panel">

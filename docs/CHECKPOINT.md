@@ -131,6 +131,31 @@ Date: 2026-10-15
 - Collection workflow result: two feeds completed, zero failed, seven topic-matched items returned for October 1–15, 2026
 - Production smoke test: 259 archive signals, 208 FabCon announcements, 20 LinkedIn people, 41 selectable sources, two automatic feeds selected, exact requested date window loaded, no horizontal overflow
 
+## Checkpoint 04 - Item hashtags
+
+Date: 2026-10-15
+
+### Completed
+
+- Added normalized automatic hashtags from each signal's platform, section, and taxonomy.
+- Added up to eight personal hashtags per item.
+- Added a hashtag editor to every signal card.
+- Added clickable hashtags that immediately filter the briefing.
+- Added a global hashtag selector that follows the active catalog scope and other filters.
+- Prioritized personal hashtags in the selector.
+- Added hashtag search indexing.
+- Included hashtags in Markdown and CSV discussion exports.
+- Added backward-compatible workspace migration for saved workspaces that predate hashtags.
+- Added hashtag persistence to workspace import and export.
+
+### Validation completed
+
+- Personal hashtag `#customer-follow-up` was added to a signal, filtered the catalog to one matching item, and remained after reload.
+- Automatic and personal hashtags render together, with personal hashtags visually distinguished.
+- Existing version 1 workspaces without `itemTags` migrate to an empty hashtag map.
+- Twenty-one automated tests pass.
+- Lint, TypeScript, production build, dependency audit, hashtag normalization, hashtag filtering, and workspace migration pass.
+
 ### Known boundaries
 
 - GitHub Pages cannot directly read authenticated LinkedIn content.

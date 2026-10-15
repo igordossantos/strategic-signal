@@ -12,6 +12,7 @@ export const emptyFilters: SignalFilters = {
   section: "",
   audience: "",
   prioritySignal: "",
+  hashtag: "",
   archiveScope: "current",
   status: "",
   evidence: "",
@@ -38,6 +39,7 @@ export function signalSearchText(signal: Signal): string {
       signal.summary,
       ...signal.details,
       ...signal.tags,
+      ...(signal.hashtags ?? []),
       signal.author,
       signal.status,
       signal.evidence,
@@ -71,6 +73,12 @@ export function filterSignals(
     const imported = signal.tags.includes("imported archive");
     if (filters.archiveScope === "current" && imported) return false;
     if (filters.archiveScope === "archive" && !imported) return false;
+    if (
+      filters.hashtag &&
+      !(signal.hashtags ?? []).includes(filters.hashtag)
+    ) {
+      return false;
+    }
     if (filters.platform && signal.platform !== filters.platform) return false;
     if (filters.section && signal.section !== filters.section) return false;
     if (
@@ -170,6 +178,32 @@ export function uniqueSorted(values: string[]): string[] {
   return [...new Set(values.filter(Boolean))].sort((a, b) =>
     a.localeCompare(b),
   );
+}
+
+export function normalizeHashtag(value: string): string {
+  return value
+    .trim()
+    .replace(/^#+/, "")
+    .toLocaleLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 40);
+}
+
+export function automaticHashtags(signal: Signal): string[] {
+  const ignored = new Set([
+    "imported-archive",
+    "monthly-update",
+    "event-announcement",
+  ]);
+  return uniqueSorted(
+    [signal.platform, signal.section, ...signal.tags]
+      .map(normalizeHashtag)
+      .filter((tag) => tag.length >= 2 && !ignored.has(tag)),
+  ).slice(0, 6);
 }
 
 export function formatDate(value?: string): string {
@@ -300,6 +334,7 @@ export function signalsToCsv(
       relevance?.audience ?? "",
       relevance?.reason ?? "",
       signal.nextStep,
+      (signal.hashtags ?? []).map((tag) => `#${tag}`).join(" "),
       sourceNames(signal, sources).join(" | "),
       signal.links.map((link) => link.url).join(" | "),
     ];
@@ -313,6 +348,7 @@ export function signalsToCsv(
     "Audience",
     "Why it matters",
     "Next step",
+    "Hashtags",
     "Sources",
     "Links",
   ];
@@ -355,6 +391,11 @@ export function signalsToMarkdown(
       );
     }
     lines.push(`- Suggested next step: ${signal.nextStep}`);
+    if (signal.hashtags?.length) {
+      lines.push(
+        `- Hashtags: ${signal.hashtags.map((tag) => `#${tag}`).join(" ")}`,
+      );
+    }
     const sourceList = sourceNames(signal, sources);
     if (sourceList.length) lines.push(`- Sources: ${sourceList.join(", ")}`);
     for (const link of signal.links) {

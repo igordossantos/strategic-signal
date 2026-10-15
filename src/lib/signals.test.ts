@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 import { platformOrder, seedSignals, seedSources } from "../data/seed";
 import {
   applyPrioritySignals,
+  automaticHashtags,
   emptyFilters,
   filterSignals,
   groupSignals,
+  normalizeHashtag,
   signalsToCsv,
   signalsToMarkdown,
   sortSignals,
@@ -63,6 +65,32 @@ describe("signal filtering", () => {
         archiveScope: "archive",
       }).map((signal) => signal.id),
     ).toEqual(["archived-copy"]);
+  });
+
+  it("normalizes and filters hashtags", () => {
+    const tagged = {
+      ...seedSignals[0],
+      hashtags: [
+        ...automaticHashtags(seedSignals[0]),
+        normalizeHashtag("#Customer Follow Up"),
+      ],
+    };
+
+    expect(normalizeHashtag("#Customer Follow Up")).toBe(
+      "customer-follow-up",
+    );
+    expect(
+      filterSignals([tagged], {
+        ...emptyFilters,
+        hashtag: "customer-follow-up",
+      }),
+    ).toHaveLength(1);
+    expect(
+      filterSignals([tagged], {
+        ...emptyFilters,
+        hashtag: "not-present",
+      }),
+    ).toHaveLength(0);
   });
 
   it("sorts by the selected audience's relevance score", () => {

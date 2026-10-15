@@ -8,6 +8,9 @@ const workspace: Workspace = {
   sources: seedSources,
   guidance: seedGuidance,
   pinnedSignalIds: ["policies-in-fabric"],
+  itemTags: {
+    "policies-in-fabric": ["customer-priority"],
+  },
 };
 
 describe("workspace persistence", () => {
@@ -40,6 +43,7 @@ describe("workspace persistence", () => {
       sources: [],
       guidance: [],
       pinnedSignalIds: [],
+      itemTags: {},
     });
 
     expect(loaded.warning).toBeUndefined();
@@ -58,6 +62,19 @@ describe("workspace persistence", () => {
         }),
       ),
     ).toThrow(/invalid source/i);
+  });
+
+  it("migrates legacy workspaces without personal hashtags", () => {
+    const migrated = parseWorkspace(
+      JSON.stringify({
+        version: 1,
+        sources: seedSources,
+        guidance: seedGuidance,
+        pinnedSignalIds: [],
+      }),
+    );
+
+    expect(migrated.itemTags).toEqual({});
   });
 
   it("surfaces corrupt saved data and uses the supplied fallback", () => {

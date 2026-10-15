@@ -4,6 +4,7 @@ import {
   ChevronDown,
   Copy,
   Download,
+  Hash,
   Layers3,
   PanelTopClose,
   PanelTopOpen,
@@ -12,6 +13,8 @@ import {
   ShieldAlert,
   SlidersHorizontal,
   Sparkles,
+  Tag,
+  Trash2,
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -20,6 +23,7 @@ import {
   filterSignals,
   groupSignals,
   maxRelevance,
+  normalizeHashtag,
   signalsToCsv,
   signalsToMarkdown,
   sortSignals,
@@ -47,6 +51,8 @@ interface BriefingViewProps {
   onSortChange: (sort: SignalSort) => void;
   pinnedSignalIds: string[];
   onTogglePinned: (id: string) => void;
+  itemTags: Record<string, string[]>;
+  onUpdateItemTags: (id: string, tags: string[]) => void;
   onNotify: (message: string, tone?: "success" | "error") => void;
 }
 
@@ -60,12 +66,17 @@ export function BriefingView({
   onSortChange,
   pinnedSignalIds,
   onTogglePinned,
+  itemTags,
+  onUpdateItemTags,
   onNotify,
 }: BriefingViewProps) {
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
     () => new Set(),
   );
   const [discussionOpen, setDiscussionOpen] = useState(false);
+  const [tagEditorSignal, setTagEditorSignal] = useState<Signal | null>(null);
+  const [tagDraft, setTagDraft] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState("");
 
   const audiences = useMemo(
     () =>
@@ -126,6 +137,35 @@ export function BriefingView({
   const statuses = useMemo(
     () => uniqueSorted(signals.map((signal) => signal.status)),
     [signals],
+  );
+  const hashtags = useMemo(
+    () => {
+      const counts = new Map<string, number>();
+      const personal = new Set(Object.values(itemTags).flat());
+      const candidates = filterSignals(signals, {
+        ...filters,
+        hashtag: "",
+      });
+      for (const hashtag of candidates.flatMap(
+        (signal) => signal.hashtags ?? [],
+      )) {
+        counts.set(hashtag, (counts.get(hashtag) ?? 0) + 1);
+      }
+      const ordered = [...counts.keys()].sort((a, b) => {
+        const personalDifference =
+          Number(personal.has(b)) - Number(personal.has(a));
+        return (
+          personalDifference ||
+          (counts.get(b) ?? 0) - (counts.get(a) ?? 0) ||
+          a.localeCompare(b)
+        );
+      });
+      const limited = ordered.slice(0, 120);
+      return filters.hashtag && !limited.includes(filters.hashtag)
+        ? [filters.hashtag, ...limited]
+        : limited;
+    },
+    [filters, itemTags, signals],
   );
 
   const visibleSignals = useMemo(
@@ -192,6 +232,37 @@ export function BriefingView({
       else next.add(key);
       return next;
     });
+  }
+
+  function openTagEditor(signal: Signal): void {
+    setTagEditorSignal(signal);
+    setTagDraft(itemTags[signal.id] ?? []);
+    setTagInput("");
+  }
+
+  function addTag(): void {
+    const normalized = normalizeHashtag(tagInput);
+    if (!normalized) {
+      onNotify("Enter a hashtag before adding it.", "error");
+      return;
+    }
+    if (tagDraft.includes(normalized)) {
+      setTagInput("");
+      return;
+    }
+    if (tagDraft.length >= 8) {
+      onNotify("Personal hashtags are limited to eight per item.", "error");
+      return;
+    }
+    setTagDraft((current) => [...current, normalized]);
+    setTagInput("");
+  }
+
+  function saveTags(): void {
+    if (!tagEditorSignal) return;
+    onUpdateItemTags(tagEditorSignal.id, tagDraft);
+    setTagEditorSignal(null);
+    onNotify("Personal hashtags saved.", "success");
   }
 
   async function copyDiscussion(): Promise<void> {
@@ -463,6 +534,22 @@ export function BriefingView({
               </select>
             </label>
             <label className="select-field">
+              <span>Hashtag</span>
+              <select
+                value={filters.hashtag}
+                onChange={(event) =>
+                  setFilter("hashtag", event.target.value)
+                }
+              >
+                <option value="">All hashtags</option>
+                {hashtags.map((hashtag) => (
+                  <option value={hashtag} key={hashtag}>
+                    #{hashtag}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="select-field">
               <span>Platform</span>
               <select
                 value={filters.platform}
@@ -630,8 +717,17 @@ export function BriefingView({
                             sources={sources}
                             selectedAudience={filters.audience}
                             selectedPrioritySignal={filters.prioritySignal}
+                            selectedHashtag={filters.hashtag}
+                            personalHashtags={itemTags[signal.id] ?? []}
                             pinned={pinnedSignalIds.includes(signal.id)}
                             onTogglePinned={onTogglePinned}
+                            onSelectHashtag={(hashtag) =>
+                              setFilter(
+                                "hashtag",
+                                filters.hashtag === hashtag ? "" : hashtag,
+                              )
+                            }
+                            onEditHashtags={() => openTagEditor(signal)}
                           />
                         ))}
                       </div>
@@ -682,6 +778,116 @@ export function BriefingView({
           </span>
         </button>
       ) : null}
+
+      <Modal
+        open={Boolean(tagEditorSignal)}
+        onOpenChange={(open) => {
+          if (!open) setTagEditorSignal(null);
+        }}
+        title="Personal hashtags"
+        description={
+          tagEditorSignal
+            ? `Tag “${tagEditorSignal.title}” for your own workflow.`
+            : undefined
+        }
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="quiet"
+              onClick={() => setTagEditorSignal(null)}
+            >
+              Cancel
+            </Button>
+            <Button type="button" variant="primary" onClick={saveTags}>
+              Save hashtags
+            </Button>
+          </>
+        }
+      >
+        <div className="hashtag-editor">
+          <form
+            className="hashtag-add-form"
+            onSubmit={(event) => {
+              event.preventDefault();
+              addTag();
+            }}
+          >
+            <label className="form-field">
+              <span>Add a personal hashtag</span>
+              <div className="hashtag-input-wrap">
+                <Hash size={17} aria-hidden="true" />
+                <input
+                  value={tagInput}
+                  onChange={(event) => setTagInput(event.target.value)}
+                  placeholder="customer-follow-up"
+                  maxLength={48}
+                />
+              </div>
+            </label>
+            <Button type="submit" variant="secondary">
+              <Tag size={16} aria-hidden="true" />
+              Add
+            </Button>
+          </form>
+
+          <div className="personal-hashtag-list">
+            <span>Personal hashtags</span>
+            {tagDraft.length ? (
+              <div>
+                {tagDraft.map((tag) => (
+                  <button
+                    type="button"
+                    key={tag}
+                    onClick={() =>
+                      setTagDraft((current) =>
+                        current.filter((item) => item !== tag),
+                      )
+                    }
+                    aria-label={`Remove hashtag ${tag}`}
+                  >
+                    #{tag}
+                    <Trash2 size={13} aria-hidden="true" />
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p>No personal hashtags yet.</p>
+            )}
+          </div>
+
+          {tagEditorSignal?.hashtags?.some(
+            (tag) => !tagDraft.includes(tag),
+          ) ? (
+            <div className="hashtag-suggestions">
+              <span>Suggested from this signal</span>
+              <div>
+                {tagEditorSignal.hashtags
+                  .filter((tag) => !tagDraft.includes(tag))
+                  .slice(0, 8)
+                  .map((tag) => (
+                    <button
+                      type="button"
+                      key={tag}
+                      onClick={() => {
+                        if (tagDraft.length >= 8) {
+                          onNotify(
+                            "Personal hashtags are limited to eight per item.",
+                            "error",
+                          );
+                          return;
+                        }
+                        setTagDraft((current) => [...current, tag]);
+                      }}
+                    >
+                      + #{tag}
+                    </button>
+                  ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </Modal>
 
       <Modal
         open={discussionOpen}

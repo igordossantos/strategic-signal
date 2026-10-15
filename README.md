@@ -17,6 +17,9 @@ Milestone 1 delivers:
 - Evidence status, source links, source discrepancies, protected-signal flags, and suggested next steps.
 - Priority-signal-backed explanations for Farmers Insurance, Zurich Insurance Group, and Zurich Brazil.
 - A discussion list with Markdown and CSV export.
+- Automatic topic hashtags plus personal per-item hashtags.
+- Clickable hashtag filtering and a personal hashtag editor on every signal card.
+- Hashtags included in Markdown, CSV, and workspace exports.
 - Source and priority-signal management screens.
 - Dynamic customer, subsidiary, and priority filters generated from active priority signals.
 - A reusable archive imported from both predecessor projects.
@@ -50,6 +53,7 @@ The imported archive currently contains:
 2. **Priority signals shape relevance, not truth.** A relevance explanation is a suggested discussion point, never a claim about a customer's environment.
 3. **Protected signals always surface.** Breaking changes, hard dates, security, licensing, pricing, and source conflicts cannot be optimized away.
 4. **Private inputs remain private by default.** Source edits and priority signals stay in the current browser until explicitly exported.
+5. **Personal organization stays portable.** Personal hashtags are saved in the versioned workspace and travel with workspace exports.
 5. **LinkedIn remains user-triggered.** The product does not store LinkedIn credentials or pretend a full profile history can be enumerated.
 
 ## Local development

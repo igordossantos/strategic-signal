@@ -60,6 +60,8 @@ Constraints to address:
   - Azure Databricks > Data Engineering
   - Microsoft SQL > AI & Operational Data
 - Expand individual cards for evidence, linked reading, recommended next step, and all audience mappings.
+- Show automatic topic hashtags and allow Igor to add personal hashtags to any item.
+- Filter the catalog by clicking a hashtag or using the hashtag selector.
 - Pin items to a discussion list.
 - Copy or export a concise customer briefing.
 
@@ -104,6 +106,7 @@ This preserves the useful behavior proven by `fabric-digest` without storing cre
 - Static assets deployed to GitHub Pages.
 - No server rendering and no required runtime API calls.
 - Local-first workspace storage using a versioned `localStorage` document.
+- Personal per-item hashtags stored in the workspace and included in exports.
 - Precomputed lowercase search documents and memoized filtering.
 - Accessible keyboard navigation, visible focus, reduced-motion support, and responsive layout.
 - Clawpilot light/dark theme tokens with no hardcoded component colors.

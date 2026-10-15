@@ -57,7 +57,14 @@ export function validateWorkspace(value: unknown): Workspace {
   if (!isStringArray(value.pinnedSignalIds)) {
     throw new Error("The workspace contains an invalid discussion list.");
   }
-  return value as unknown as Workspace;
+  const itemTags = value.itemTags ?? {};
+  if (
+    !isRecord(itemTags) ||
+    !Object.values(itemTags).every(isStringArray)
+  ) {
+    throw new Error("The workspace contains invalid personal hashtags.");
+  }
+  return { ...value, itemTags } as unknown as Workspace;
 }
 
 export interface WorkspaceLoadResult {

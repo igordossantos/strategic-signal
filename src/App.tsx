@@ -22,7 +22,13 @@ import { IgorMark } from "./components/IgorMark";
 import { SourcesView } from "./components/SourcesView";
 import { Button } from "./components/ui";
 import { seedGuidance, seedSignals, seedSources } from "./data/seed";
-import { applyPrioritySignals, emptyFilters } from "./lib/signals";
+import {
+  applyPrioritySignals,
+  automaticHashtags,
+  emptyFilters,
+  normalizeHashtag,
+  uniqueSorted,
+} from "./lib/signals";
 import { loadArchive } from "./lib/archive";
 import {
   downloadText,
@@ -43,6 +49,7 @@ const starterWorkspace: Workspace = {
   sources: seedSources,
   guidance: seedGuidance,
   pinnedSignalIds: [],
+  itemTags: {},
 };
 
 function viewFromHash(): AppView {
@@ -91,8 +98,18 @@ function App() {
     return [...byId.values()];
   }, [archive]);
   const personalizedSignals = useMemo(
-    () => applyPrioritySignals(availableSignals, workspace.guidance),
-    [availableSignals, workspace.guidance],
+    () =>
+      applyPrioritySignals(
+        availableSignals.map((signal) => ({
+          ...signal,
+          hashtags: uniqueSorted([
+            ...(workspace.itemTags[signal.id] ?? []).map(normalizeHashtag),
+            ...automaticHashtags(signal),
+          ]),
+        })),
+        workspace.guidance,
+      ),
+    [availableSignals, workspace.guidance, workspace.itemTags],
   );
 
   const notify = useCallback(
@@ -215,6 +232,17 @@ function App() {
           : [...current.pinnedSignalIds, id],
       };
     });
+  }
+
+  function updateItemTags(id: string, tags: string[]): void {
+    const normalized = uniqueSorted(tags.map(normalizeHashtag).filter(Boolean));
+    setWorkspace((current) => ({
+      ...current,
+      itemTags: {
+        ...current.itemTags,
+        [id]: normalized,
+      },
+    }));
   }
 
   function exportWorkspace(): void {
@@ -357,6 +385,8 @@ function App() {
           onSortChange={setSort}
           pinnedSignalIds={workspace.pinnedSignalIds}
           onTogglePinned={togglePinned}
+          itemTags={workspace.itemTags}
+          onUpdateItemTags={updateItemTags}
           onNotify={notify}
         />
       ) : null}
