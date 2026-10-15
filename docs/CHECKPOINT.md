@@ -156,6 +156,14 @@ Date: 2026-10-15
 - Twenty-one automated tests pass.
 - Lint, TypeScript, production build, dependency audit, hashtag normalization, hashtag filtering, and workspace migration pass.
 
+### Deployment record
+
+- Release: `1.3.0`
+- Feature commit: `b8c6b0e11c94cf7a0a827a5fd6da3ec4292ac139`
+- Responsive correction: `92d5c7efbbfeb52a7aaef0298973452d7a5774da`
+- GitHub Pages run: `38774287957`
+- Production smoke test: 11 fast-default cards, 55 visible automatic hashtags, 11 personal-tag editors, 52 scoped filter options, and no horizontal overflow at 1280 pixels
+
 ### Known boundaries
 
 - GitHub Pages cannot directly read authenticated LinkedIn content.
