@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { platformOrder, seedSignals, seedSources } from "../data/seed";
 import {
+  applyPrioritySignals,
   emptyFilters,
   filterSignals,
   groupSignals,
@@ -8,6 +9,7 @@ import {
   signalsToMarkdown,
   sortSignals,
 } from "./signals";
+import type { Guidance } from "../types";
 
 describe("signal filtering", () => {
   it("matches every search token across normalized signal text", () => {
@@ -55,6 +57,35 @@ describe("signal filtering", () => {
     );
 
     expect(sorted[0]?.id).toBe("policies-in-fabric");
+  });
+
+  it("turns an active customer priority into a dynamic filter and mapping", () => {
+    const priority: Guidance = {
+      id: "subsidiary-vector-priority",
+      title: "Ground operational AI in governed data",
+      audience: "Zurich Validation Subsidiary",
+      need: "Evaluate grounded retrieval over operational data.",
+      priority: "high",
+      effectiveDate: "2026-10-15",
+      tags: ["operational data"],
+      matchTerms: ["vector search", "rag"],
+      active: true,
+    };
+    const personalized = applyPrioritySignals(seedSignals, [priority]);
+    const result = filterSignals(personalized, {
+      ...emptyFilters,
+      audience: priority.audience,
+      prioritySignal: priority.id,
+    });
+
+    expect(result.map((signal) => signal.id)).toContain(
+      "diskann-vector-indexes-ga",
+    );
+    expect(
+      result[0]?.relevance.some(
+        (mapping) => mapping.guidanceId === priority.id,
+      ),
+    ).toBe(true);
   });
 });
 

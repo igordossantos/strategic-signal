@@ -14,7 +14,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   emptyFilters,
   filterSignals,
@@ -28,6 +28,7 @@ import {
 import { downloadText } from "../lib/workspace";
 import { platformOrder } from "../data/seed";
 import type {
+  Guidance,
   Signal,
   SignalFilters,
   SignalSort,
@@ -39,6 +40,7 @@ import { Badge, Button, EmptyState, Modal } from "./ui";
 interface BriefingViewProps {
   signals: Signal[];
   sources: Source[];
+  prioritySignals: Guidance[];
   filters: SignalFilters;
   onFiltersChange: (filters: SignalFilters) => void;
   sort: SignalSort;
@@ -51,6 +53,7 @@ interface BriefingViewProps {
 export function BriefingView({
   signals,
   sources,
+  prioritySignals,
   filters,
   onFiltersChange,
   sort,
@@ -67,12 +70,43 @@ export function BriefingView({
   const audiences = useMemo(
     () =>
       uniqueSorted(
-        signals.flatMap((signal) =>
-          signal.relevance.map((item) => item.audience),
-        ),
+        prioritySignals
+          .filter((item) => item.active)
+          .map((item) => item.audience),
       ),
-    [signals],
+    [prioritySignals],
   );
+  const availablePrioritySignals = useMemo(
+    () =>
+      prioritySignals
+        .filter(
+          (item) =>
+            item.active &&
+            (!filters.audience || item.audience === filters.audience),
+        )
+        .sort(
+          (a, b) =>
+            a.audience.localeCompare(b.audience) ||
+            a.title.localeCompare(b.title),
+        ),
+    [filters.audience, prioritySignals],
+  );
+
+  useEffect(() => {
+    const active = prioritySignals.filter((item) => item.active);
+    const audienceExists =
+      !filters.audience ||
+      active.some((item) => item.audience === filters.audience);
+    const priorityExists =
+      !filters.prioritySignal ||
+      active.some((item) => item.id === filters.prioritySignal);
+    if (audienceExists && priorityExists) return;
+    onFiltersChange({
+      ...filters,
+      audience: audienceExists ? filters.audience : "",
+      prioritySignal: priorityExists ? filters.prioritySignal : "",
+    });
+  }, [filters, onFiltersChange, prioritySignals]);
   const platforms = useMemo(
     () => uniqueSorted(signals.map((signal) => signal.platform)),
     [signals],
@@ -100,6 +134,7 @@ export function BriefingView({
         filterSignals(signals, filters),
         sort,
         filters.audience,
+        filters.prioritySignal,
       ),
     [filters, signals, sort],
   );
@@ -113,11 +148,17 @@ export function BriefingView({
         signals.filter((signal) => pinnedSignalIds.includes(signal.id)),
         "relevance",
         filters.audience,
+        filters.prioritySignal,
       ),
-    [filters.audience, pinnedSignalIds, signals],
+    [filters.audience, filters.prioritySignal, pinnedSignalIds, signals],
   );
   const highRelevance = visibleSignals.filter(
-    (signal) => maxRelevance(signal, filters.audience) >= 90,
+    (signal) =>
+      maxRelevance(
+        signal,
+        filters.audience,
+        filters.prioritySignal,
+      ) >= 90,
   ).length;
   const activeFilterCount = Object.entries(filters).filter(([key, value]) => {
     if (key === "customerSafeOnly") return value !== true;
@@ -130,6 +171,13 @@ export function BriefingView({
   ): void {
     const next = { ...filters, [key]: value };
     if (key === "platform" && value !== filters.platform) next.section = "";
+    if (key === "audience" && value !== filters.audience) {
+      next.prioritySignal = "";
+    }
+    if (key === "prioritySignal") {
+      const selected = prioritySignals.find((item) => item.id === value);
+      if (selected) next.audience = selected.audience;
+    }
     onFiltersChange(next);
   }
 
@@ -150,7 +198,12 @@ export function BriefingView({
     if (!pinnedSignals.length) return;
     try {
       await navigator.clipboard.writeText(
-        signalsToMarkdown(pinnedSignals, sources, filters.audience),
+        signalsToMarkdown(
+          pinnedSignals,
+          sources,
+          filters.audience,
+          filters.prioritySignal,
+        ),
       );
       onNotify("Discussion list copied as Markdown.", "success");
     } catch (error) {
@@ -165,13 +218,23 @@ export function BriefingView({
     if (format === "csv") {
       downloadText(
         "strategic-signal-discussion.csv",
-        signalsToCsv(pinnedSignals, sources, filters.audience),
+        signalsToCsv(
+          pinnedSignals,
+          sources,
+          filters.audience,
+          filters.prioritySignal,
+        ),
         "text/csv;charset=utf-8",
       );
     } else {
       downloadText(
         "strategic-signal-discussion.md",
-        signalsToMarkdown(pinnedSignals, sources, filters.audience),
+        signalsToMarkdown(
+          pinnedSignals,
+          sources,
+          filters.audience,
+          filters.prioritySignal,
+        ),
         "text/markdown;charset=utf-8",
       );
     }
@@ -189,17 +252,17 @@ export function BriefingView({
           <div className="hero-copy">
             <div className="hero-status">
               <span aria-hidden="true" />
-              Research snapshot verified Oct 6, 2026
+              Personally curated by Igor Dos Santos
             </div>
-            <p className="eyebrow">Data · Analytics · AI intelligence</p>
+            <p className="eyebrow">Igor's curated technology intelligence</p>
             <h1>
-              Turn technology noise into{" "}
-              <span>customer-ready signal.</span>
+              Your technology signal,{" "}
+              <span>curated by Igor.</span>
             </h1>
             <p className="hero-lede">
-              One evidence-backed briefing across Fabric, Foundry, Databricks,
-              SQL, and the data platform—ranked against the conversations that
-              matter now.
+              An evidence-backed briefing across the technologies shaping your
+              agenda—ranked against the priorities you share and prepared for
+              the conversations that matter now.
             </p>
             <div className="hero-actions">
               <Button
@@ -237,11 +300,11 @@ export function BriefingView({
             <div className="intelligence-card intelligence-card-main">
               <div className="intelligence-label">
                 <Sparkles size={16} aria-hidden="true" />
-                Strategic match
+                Customer priority match
               </div>
               <strong>98</strong>
-              <p>Policies in Fabric</p>
-              <small>Farmers Insurance · Data product management</small>
+              <p>Governed data products</p>
+              <small>Matched through Igor's priority signals</small>
             </div>
             <div className="intelligence-card intelligence-card-secondary">
               <span>Protected signal</span>
@@ -261,7 +324,7 @@ export function BriefingView({
           >
             <span>Signals cataloged</span>
             <strong>{signals.length}</strong>
-            <small>Across {platforms.length} platforms</small>
+            <small>Across {platforms.length} technology domains</small>
           </button>
           <button
             type="button"
@@ -300,31 +363,48 @@ export function BriefingView({
           </button>
         </section>
 
-        <section className="audience-strip" aria-label="Audience shortcuts">
+        <section className="audience-strip" aria-label="Customer briefing lens">
           <div>
-            <span>Focus the briefing</span>
-            <strong>Who are you meeting?</strong>
+            <span>Priority lens</span>
+            <strong>Brief by the signals you give Igor</strong>
           </div>
-          <div className="audience-chips">
-            <button
-              type="button"
-              className={!filters.audience ? "audience-chip-active" : ""}
-              onClick={() => setFilter("audience", "")}
-            >
-              Every audience
-            </button>
-            {audiences.map((audience) => (
-              <button
-                type="button"
-                key={audience}
-                className={
-                  filters.audience === audience ? "audience-chip-active" : ""
-                }
-                onClick={() => setFilter("audience", audience)}
+          <div className="priority-lens-controls">
+            <label className="select-field">
+              <span>Customer or subsidiary</span>
+              <select
+                value={filters.audience}
+                onChange={(event) => setFilter("audience", event.target.value)}
               >
-                {audience}
-              </button>
-            ))}
+                <option value="">All customers and audiences</option>
+                {audiences.map((audience) => (
+                  <option value={audience} key={audience}>
+                    {audience}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="select-field">
+              <span>Priority signal</span>
+              <select
+                value={filters.prioritySignal}
+                onChange={(event) =>
+                  setFilter("prioritySignal", event.target.value)
+                }
+              >
+                <option value="">All active priority signals</option>
+                {availablePrioritySignals.map((item) => (
+                  <option value={item.id} key={item.id}>
+                    {item.audience} · {item.title}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <a
+              className="button button-secondary button-normal"
+              href="#priorities"
+            >
+              Manage signals
+            </a>
           </div>
         </section>
 
@@ -332,7 +412,7 @@ export function BriefingView({
           <div className="filter-panel-heading">
             <div>
               <p className="eyebrow">Signal catalog</p>
-              <h2 id="catalog-heading">Find the answer before the meeting</h2>
+              <h2 id="catalog-heading">Find the signal before the conversation</h2>
             </div>
             <div className="filter-heading-actions">
               {activeFilterCount ? (
@@ -463,16 +543,7 @@ export function BriefingView({
 
         <section className="catalog-results" aria-live="polite">
           <div className="results-toolbar">
-            <div>
-              <strong>
-                {visibleSignals.length} signal
-                {visibleSignals.length === 1 ? "" : "s"}
-              </strong>
-              <span>
-                {highRelevance} scored 90+ for the current audience focus
-              </span>
-            </div>
-            <div>
+            <div className="results-actions">
               <Button
                 type="button"
                 variant="quiet"
@@ -494,6 +565,15 @@ export function BriefingView({
                 Collapse all
               </Button>
             </div>
+            <div className="results-summary">
+              <strong>
+                {visibleSignals.length} signal
+                {visibleSignals.length === 1 ? "" : "s"}
+              </strong>
+              <span>
+                {highRelevance} scored 90+ for the active priority lens
+              </span>
+            </div>
           </div>
 
           {groups.length ? (
@@ -508,6 +588,11 @@ export function BriefingView({
                       aria-expanded={!collapsed}
                       onClick={() => toggleGroup(group.key)}
                     >
+                      <ChevronDown
+                        size={20}
+                        className={collapsed ? "chevron-rotated-up" : ""}
+                        aria-hidden="true"
+                      />
                       <div className="group-mark" aria-hidden="true">
                         <Layers3 size={18} />
                       </div>
@@ -519,11 +604,6 @@ export function BriefingView({
                         {group.signals.length}{" "}
                         {group.signals.length === 1 ? "signal" : "signals"}
                       </Badge>
-                      <ChevronDown
-                        size={20}
-                        className={collapsed ? "chevron-rotated-up" : ""}
-                        aria-hidden="true"
-                      />
                     </button>
                     {!collapsed ? (
                       <div className="signal-grid">
@@ -533,6 +613,7 @@ export function BriefingView({
                             signal={signal}
                             sources={sources}
                             selectedAudience={filters.audience}
+                            selectedPrioritySignal={filters.prioritySignal}
                             pinned={pinnedSignalIds.includes(signal.id)}
                             onTogglePinned={onTogglePinned}
                           />
@@ -621,11 +702,21 @@ export function BriefingView({
         {pinnedSignals.length ? (
           <div className="discussion-list">
             {pinnedSignals.map((signal) => {
-              const mapping = filters.audience
-                ? signal.relevance.find(
-                    (item) => item.audience === filters.audience,
-                  )
-                : signal.relevance[0];
+              const mapping = signal.relevance.find((item) => {
+                if (
+                  filters.audience &&
+                  item.audience !== filters.audience
+                ) {
+                  return false;
+                }
+                if (
+                  filters.prioritySignal &&
+                  item.guidanceId !== filters.prioritySignal
+                ) {
+                  return false;
+                }
+                return true;
+              });
               return (
                 <article key={signal.id}>
                   <div>

@@ -141,7 +141,7 @@ export function GuidanceView({
       return;
     }
     const next: Guidance = {
-      id: draft.id ?? createId("guidance", draft.title),
+      id: draft.id ?? createId("priority", draft.title),
       title: draft.title.trim(),
       audience: draft.audience.trim(),
       need: draft.need.trim(),
@@ -160,7 +160,10 @@ export function GuidanceView({
         : [...guidance, next],
     );
     setDialogOpen(false);
-    onNotify(exists ? "Guidance updated." : "Guidance added.", "success");
+    onNotify(
+      exists ? "Priority signal updated." : "Priority signal added.",
+      "success",
+    );
   }
 
   function remove(item: Guidance): void {
@@ -168,7 +171,7 @@ export function GuidanceView({
       return;
     }
     onChange(guidance.filter((current) => current.id !== item.id));
-    onNotify("Guidance removed.", "success");
+    onNotify("Priority signal removed.", "success");
   }
 
   function toggle(item: Guidance): void {
@@ -180,7 +183,7 @@ export function GuidanceView({
       ),
     );
     onNotify(
-      item.active ? "Guidance paused." : "Guidance activated.",
+      item.active ? "Priority signal paused." : "Priority signal activated.",
       "success",
     );
   }
@@ -189,22 +192,23 @@ export function GuidanceView({
     <main className="page-shell" id="main-content">
       <section className="page-heading guidance-heading">
         <div>
-          <p className="eyebrow">Intelligence studio</p>
-          <h1>Guidance</h1>
+          <p className="eyebrow">Igor's editorial lens</p>
+          <h1>Priority signals</h1>
           <p>
-            Record what matters to each audience. Strategic Signal uses these
-            dated needs to explain why a new capability deserves attention.
+            Tell Strategic Signal what matters to each customer, subsidiary, or
+            conversation. Every active signal immediately becomes a briefing
+            filter and a traceable relevance lens.
           </p>
         </div>
         <Button type="button" variant="primary" onClick={openCreate}>
           <Plus size={18} aria-hidden="true" />
-          Add guidance
+          Add priority signal
         </Button>
       </section>
 
-      <section className="metric-strip" aria-label="Guidance summary">
+      <section className="metric-strip" aria-label="Priority signal summary">
         <div className="metric-card">
-          <span>Guidance items</span>
+          <span>Priority signals</span>
           <strong>{guidance.length}</strong>
           <small>In this browser workspace</small>
         </div>
@@ -237,22 +241,22 @@ export function GuidanceView({
         <div>
           <strong>Local by default</strong>
           <p>
-            Guidance is stored only in this browser. Export deliberately when
-            you want a backup. Do not place confidential customer information
-            in a public repository.
+            Priority signals are stored only in this browser. Export
+            deliberately when you want a backup. Do not place confidential
+            customer information in a public repository.
           </p>
         </div>
       </div>
 
-      <section className="manager-toolbar" aria-label="Filter guidance">
+      <section className="manager-toolbar" aria-label="Filter priority signals">
         <label className="search-field">
           <Search size={18} aria-hidden="true" />
-          <span className="sr-only">Search guidance</span>
+          <span className="sr-only">Search priority signals</span>
           <input
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search customer needs, tags, or matching phrases"
+            placeholder="Search customers, priorities, or matching phrases"
           />
         </label>
         <label className="select-field">
@@ -272,7 +276,7 @@ export function GuidanceView({
       </section>
 
       {shown.length ? (
-        <section className="guidance-grid" aria-label="Customer guidance">
+        <section className="guidance-grid" aria-label="Customer priority signals">
           {shown.map((item) => (
             <article
               key={item.id}
@@ -331,7 +335,7 @@ export function GuidanceView({
                 </p>
               </div>
 
-              <div className="tag-list" aria-label="Guidance tags">
+              <div className="tag-list" aria-label={`Topics for ${item.title}`}>
                 {item.tags.map((tag) => (
                   <span key={tag}>{tag}</span>
                 ))}
@@ -369,12 +373,12 @@ export function GuidanceView({
       ) : (
         <EmptyState
           icon={<Crosshair size={26} />}
-          title="No guidance matches"
-          description="Try another audience or add a dated customer priority."
+          title="No priority signals match"
+          description="Try another audience or add a dated customer priority signal."
           action={
             <Button type="button" variant="primary" onClick={openCreate}>
               <Plus size={17} aria-hidden="true" />
-              Add guidance
+              Add priority signal
             </Button>
           }
         />
@@ -385,8 +389,8 @@ export function GuidanceView({
         <div>
           <strong>How relevance is written</strong>
           <p>
-            Guidance influences ranking and the "why this may matter"
-            explanation. It never turns a suggested use case into a statement
+            Priority signals influence ranking and the "why this may matter"
+            explanation. They never turn a suggested use case into a statement
             about the customer's current environment.
           </p>
         </div>
@@ -395,20 +399,20 @@ export function GuidanceView({
       <Modal
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        title={draft.id ? "Edit guidance" : "Add guidance"}
+        title={draft.id ? "Edit priority signal" : "Add priority signal"}
         description="Use one clear need per item so relevance explanations remain traceable."
         footer={
           <>
             <Button type="button" variant="quiet" onClick={() => setDialogOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" variant="primary" form="guidance-form">
-              {draft.id ? "Save changes" : "Add guidance"}
+            <Button type="submit" variant="primary" form="priority-signal-form">
+              {draft.id ? "Save changes" : "Add priority signal"}
             </Button>
           </>
         }
       >
-        <form id="guidance-form" className="editor-form" onSubmit={save}>
+        <form id="priority-signal-form" className="editor-form" onSubmit={save}>
           {formError ? <p className="form-error">{formError}</p> : null}
           <div className="form-grid">
             <label className="form-field">
@@ -443,7 +447,7 @@ export function GuidanceView({
               </select>
             </label>
             <label className="form-field form-field-wide">
-              <span>Guidance title</span>
+              <span>Signal title</span>
               <input
                 value={draft.title}
                 onChange={(event) =>

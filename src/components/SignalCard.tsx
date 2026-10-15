@@ -17,6 +17,7 @@ interface SignalCardProps {
   signal: Signal;
   sources: Source[];
   selectedAudience: string;
+  selectedPrioritySignal: string;
   pinned: boolean;
   onTogglePinned: (id: string) => void;
 }
@@ -39,13 +40,21 @@ export function SignalCard({
   signal,
   sources,
   selectedAudience,
+  selectedPrioritySignal,
   pinned,
   onTogglePinned,
 }: SignalCardProps) {
   const [expanded, setExpanded] = useState(false);
-  const relevance = selectedAudience
-    ? signal.relevance.filter((item) => item.audience === selectedAudience)
-    : signal.relevance;
+  const relevance = signal.relevance.filter((item) => {
+    if (selectedAudience && item.audience !== selectedAudience) return false;
+    if (
+      selectedPrioritySignal &&
+      item.guidanceId !== selectedPrioritySignal
+    ) {
+      return false;
+    }
+    return true;
+  });
   const sourceLabel = sourceNames(signal, sources).join(" · ");
   const leadRelevance = relevance[0];
 

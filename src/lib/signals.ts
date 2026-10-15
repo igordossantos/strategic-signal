@@ -1,4 +1,5 @@
 import type {
+  Guidance,
   Signal,
   SignalFilters,
   SignalSort,
@@ -10,6 +11,7 @@ export const emptyFilters: SignalFilters = {
   platform: "",
   section: "",
   audience: "",
+  prioritySignal: "",
   status: "",
   evidence: "",
   protectedOnly: false,
@@ -45,10 +47,16 @@ export function signalSearchText(signal: Signal): string {
   );
 }
 
-export function maxRelevance(signal: Signal, audience = ""): number {
-  const mappings = audience
-    ? signal.relevance.filter((item) => item.audience === audience)
-    : signal.relevance;
+export function maxRelevance(
+  signal: Signal,
+  audience = "",
+  prioritySignal = "",
+): number {
+  const mappings = signal.relevance.filter((item) => {
+    if (audience && item.audience !== audience) return false;
+    if (prioritySignal && item.guidanceId !== prioritySignal) return false;
+    return true;
+  });
   return Math.max(0, ...mappings.map((item) => item.score));
 }
 
@@ -64,6 +72,14 @@ export function filterSignals(
     if (
       filters.audience &&
       !signal.relevance.some((item) => item.audience === filters.audience)
+    ) {
+      return false;
+    }
+    if (
+      filters.prioritySignal &&
+      !signal.relevance.some(
+        (item) => item.guidanceId === filters.prioritySignal,
+      )
     ) {
       return false;
     }
@@ -83,6 +99,7 @@ export function sortSignals(
   signals: Signal[],
   sort: SignalSort,
   audience = "",
+  prioritySignal = "",
 ): Signal[] {
   return [...signals].sort((a, b) => {
     if (sort === "title") return a.title.localeCompare(b.title);
@@ -92,7 +109,9 @@ export function sortSignals(
       );
       return byDate || a.title.localeCompare(b.title);
     }
-    const byRelevance = maxRelevance(b, audience) - maxRelevance(a, audience);
+    const byRelevance =
+      maxRelevance(b, audience, prioritySignal) -
+      maxRelevance(a, audience, prioritySignal);
     const protectedDifference = b.protected.length - a.protected.length;
     return (
       byRelevance ||
@@ -172,6 +191,82 @@ export function sourceNames(signal: Signal, sources: Source[]): string[] {
     .filter((name): name is string => Boolean(name));
 }
 
+function prioritySearchText(signal: Signal): string {
+  return normalize(
+    [
+      signal.title,
+      signal.platform,
+      signal.section,
+      signal.product,
+      signal.summary,
+      ...signal.details,
+      ...signal.tags,
+      signal.nextStep,
+    ].join(" "),
+  );
+}
+
+export function applyPrioritySignals(
+  signals: Signal[],
+  prioritySignals: Guidance[],
+): Signal[] {
+  const active = prioritySignals.filter((item) => item.active);
+  const activeById = new Map(active.map((item) => [item.id, item]));
+  const priorityBase = {
+    critical: 88,
+    high: 78,
+    normal: 68,
+    watch: 58,
+  } as const;
+
+  return signals.map((signal) => {
+    const relevance = signal.relevance
+      .filter(
+        (mapping) =>
+          !mapping.guidanceId || activeById.has(mapping.guidanceId),
+      )
+      .map((mapping) => {
+        const prioritySignal = mapping.guidanceId
+          ? activeById.get(mapping.guidanceId)
+          : undefined;
+        return prioritySignal
+          ? { ...mapping, audience: prioritySignal.audience }
+          : mapping;
+      });
+    const mappedIds = new Set(
+      relevance
+        .map((mapping) => mapping.guidanceId)
+        .filter((id): id is string => Boolean(id)),
+    );
+    const haystack = prioritySearchText(signal);
+
+    for (const prioritySignal of active) {
+      if (mappedIds.has(prioritySignal.id)) continue;
+      const phrases = uniqueSorted([
+        ...prioritySignal.matchTerms,
+        ...prioritySignal.tags,
+      ]);
+      const matches = phrases.filter((phrase) =>
+        haystack.includes(normalize(phrase)),
+      );
+      if (!matches.length) continue;
+      const score = Math.min(
+        99,
+        priorityBase[prioritySignal.priority] +
+          Math.min(11, Math.max(0, matches.length - 1) * 3),
+      );
+      relevance.push({
+        audience: prioritySignal.audience,
+        guidanceId: prioritySignal.id,
+        score,
+        reason: `This aligns with the priority signal “${prioritySignal.title}” through ${matches.slice(0, 3).join(", ")}. It is a suggested discussion connection, not a statement about the customer's current environment.`,
+      });
+    }
+
+    return { ...signal, relevance };
+  });
+}
+
 function csvCell(value: unknown): string {
   let output = String(value ?? "").replace(/\r?\n/g, " ");
   if (/^[=+\-@\t]/.test(output)) output = `'${output}`;
@@ -184,11 +279,14 @@ export function signalsToCsv(
   signals: Signal[],
   sources: Source[],
   audience = "",
+  prioritySignal = "",
 ): string {
   const rows = signals.map((signal) => {
-    const relevance = audience
-      ? signal.relevance.find((item) => item.audience === audience)
-      : signal.relevance[0];
+    const relevance = signal.relevance.find((item) => {
+      if (audience && item.audience !== audience) return false;
+      if (prioritySignal && item.guidanceId !== prioritySignal) return false;
+      return true;
+    });
     return [
       signal.title,
       signal.platform,
@@ -224,6 +322,7 @@ export function signalsToMarkdown(
   signals: Signal[],
   sources: Source[],
   audience = "",
+  prioritySignal = "",
 ): string {
   const audienceLabel = audience ? ` for ${audience}` : "";
   const lines = [
@@ -234,9 +333,11 @@ export function signalsToMarkdown(
   ];
 
   for (const signal of signals) {
-    const mappings = audience
-      ? signal.relevance.filter((item) => item.audience === audience)
-      : signal.relevance;
+    const mappings = signal.relevance.filter((item) => {
+      if (audience && item.audience !== audience) return false;
+      if (prioritySignal && item.guidanceId !== prioritySignal) return false;
+      return true;
+    });
     lines.push(
       `## ${signal.title}`,
       `- Area: ${signal.platform} > ${signal.section}`,

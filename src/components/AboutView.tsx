@@ -8,11 +8,12 @@ import {
   Globe2,
   LockKeyhole,
   MessageSquareText,
-  Radar,
+  Search,
   ShieldCheck,
   Workflow,
 } from "lucide-react";
 import { Badge } from "./ui";
+import { IgorMark } from "./IgorMark";
 
 const principles = [
   {
@@ -21,14 +22,14 @@ const principles = [
     text: "Official sources establish availability. Commentary can add framing, but it remains visibly distinct.",
   },
   {
-    icon: Radar,
+    icon: Search,
     title: "Needs shape ranking, not facts",
-    text: "Customer guidance explains why a signal may matter without inventing claims about the customer's environment.",
+    text: "Customer priority signals explain why an item may matter without inventing claims about the customer's environment.",
   },
   {
     icon: LockKeyhole,
     title: "Private by default",
-    text: "Source edits and guidance stay in the browser until Igor deliberately exports the workspace.",
+    text: "Source edits and priority signals stay in the browser until Igor deliberately exports the workspace.",
   },
   {
     icon: CheckCircle2,
@@ -45,9 +46,9 @@ export function AboutView() {
           <p className="eyebrow">How Strategic Signal works</p>
           <h1>Intelligence built for trusted customer conversations.</h1>
           <p>
-            Strategic Signal combines the evidence discipline of the FabCon
-            briefing with the source intelligence, archive, and preference
-            model developed in Fabric Digest.
+            Strategic Signal is Igor's editorial layer over the technology
+            landscape: researched, ranked, and shaped for the customer
+            conversation in front of you.
           </p>
         </div>
         <a
@@ -64,18 +65,18 @@ export function AboutView() {
 
       <section className="about-statement">
         <div className="statement-mark" aria-hidden="true">
-          SS
+          <IgorMark size={74} />
         </div>
         <div>
-          <Badge tone="accent">Designed for Igor Dos Santos</Badge>
+          <Badge tone="accent">Curated personally by Igor Dos Santos</Badge>
           <blockquote>
             “Get to the signal quickly, understand why it matters, and walk
             into the room ready to lead.”
           </blockquote>
           <p>
-            A customer-ready technology intelligence surface for Microsoft
-            Fabric, Microsoft Foundry, Azure Databricks, Microsoft SQL, Azure
-            AI, and the platform decisions around them.
+            A customer-ready technology digest that can span any platform,
+            architecture, product, or emerging idea relevant to the priorities
+            you share with Igor.
           </p>
         </div>
       </section>
@@ -101,8 +102,8 @@ export function AboutView() {
           <h2>Fast public experience. Deliberate private inputs.</h2>
           <p>
             GitHub Pages serves the customer-facing briefing. Collection and
-            enrichment happen before publication; private guidance is never
-            required by the public page.
+            enrichment happen before publication; private priority signals are
+            never required by the public page.
           </p>
         </div>
 
@@ -131,11 +132,11 @@ export function AboutView() {
           </div>
           <article>
             <div className="architecture-icon">
-              <Radar size={21} aria-hidden="true" />
+              <Search size={21} aria-hidden="true" />
             </div>
             <span>03</span>
             <h3>Enrich</h3>
-            <p>Concise summaries, taxonomy, guidance matches, and safety checks.</p>
+            <p>Concise summaries, taxonomy, priority matches, and safety checks.</p>
           </article>
           <div className="flow-arrow" aria-hidden="true">
             <BookOpen size={18} />
@@ -180,9 +181,9 @@ export function AboutView() {
               <Badge tone="success">Current</Badge>
               <h3>Product foundation</h3>
               <p>
-                Customer briefing, filters, hierarchy, source and guidance
-                studio, discussion list, workspace import/export, and GitHub
-                Pages deployment.
+                Customer briefing, filters, hierarchy, source and priority
+                signal studio, discussion list, workspace import/export, and
+                GitHub Pages deployment.
               </p>
             </div>
           </li>
@@ -215,7 +216,7 @@ export function AboutView() {
               <h3>Private shared workspace</h3>
               <p>
                 Entra-authenticated persistence only if cross-device private
-                guidance becomes a real requirement.
+                priority signals become a real requirement.
               </p>
             </div>
           </li>

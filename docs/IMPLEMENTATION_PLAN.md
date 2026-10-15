@@ -2,9 +2,9 @@
 
 ## Product vision
 
-Strategic Signal is a customer-ready technology intelligence hub for Igor Dos Santos. It turns a curated set of official feeds, expert blogs, and selected LinkedIn voices into fast, evidence-backed briefings for Zurich Insurance Group, Farmers Insurance, regional Zurich organizations, and other customer audiences.
+Strategic Signal by Igor is a customer-ready technology intelligence hub for Igor Dos Santos. It turns a curated set of official feeds, expert blogs, and selected LinkedIn voices into fast, evidence-backed briefings that feel personally prepared by Igor for each audience.
 
-The product is intentionally broader than Microsoft Fabric. Its taxonomy supports Microsoft Fabric, Microsoft Foundry, Azure Databricks, Microsoft SQL, Azure AI, data governance, analytics, and adjacent technologies.
+The product is intentionally open-ended. Its taxonomy can cover any platform, product, architecture, or emerging idea that matters to a customer conversation.
 
 Working public URL:
 
@@ -27,7 +27,7 @@ Conference-specific constraints to remove:
 - One event and one date window.
 - Fabric-first category model.
 - Relevance text embedded directly in every announcement.
-- Source and guidance data are maintained only by editing JSON.
+- Source and priority data are maintained only by editing JSON.
 
 ### `fabric-digest`
 
@@ -37,14 +37,14 @@ Reusable strengths:
 - Official sources as ground truth; LinkedIn as framing and editorial signal.
 - Explicit evidence grades: confirmed, commentary, and ahead of docs.
 - Protected classes that always surface: breaking changes, hard dates, security, licensing, pricing, and source contradictions.
-- User guidance, learned preferences, archive state, deduplication, and state transitions.
+- User priorities, learned preferences, archive state, deduplication, and state transitions.
 - Measured LinkedIn limitations rather than assumed automation capabilities.
 
 Constraints to address:
 
 - The current workflow is agent-driven rather than a standalone application.
 - Data is spread across multiple files and digest formats.
-- Source and guidance management are not yet a unified customer-facing experience.
+- Source and priority management are not yet a unified customer-facing experience.
 
 ## Core experience
 
@@ -72,13 +72,14 @@ Constraints to address:
 - Import and export a complete workspace JSON file.
 - Repository-backed sync is a later authenticated enhancement; no token is stored in the public site.
 
-### 3. Guidance
+### 3. Priority signals
 
 - Add dated customer needs and priorities.
 - Assign an audience, priority, effective date, technologies, and matching phrases.
-- Keep guidance local to the browser unless Igor explicitly exports and commits it.
-- Explain every relevance match: which guidance item matched, why it matters, and the confidence of the mapping.
-- Never present guidance-derived relevance as a statement of the customer's deployed environment.
+- Keep priority signals local to the browser unless Igor explicitly exports them.
+- Generate customer, subsidiary, and priority filters dynamically from active priority signals.
+- Explain every relevance match: which priority signal matched, why it matters, and the confidence of the mapping.
+- Never present priority-derived relevance as a statement of the customer's deployed environment.
 
 ### 4. LinkedIn capture
 
@@ -115,7 +116,7 @@ This preserves the useful behavior proven by `fabric-digest` without storing cre
 - Classification: platform, section, tags, status, signal type.
 - Evidence: grade, source ids, verification date, discrepancy note.
 - Content: executive summary, detail bullets, next step, linked reading.
-- Relevance: one or more audience mappings with reason, score, and matching guidance id.
+- Relevance: one or more audience mappings with reason, score, and matching priority-signal id.
 - Safety: protected class flags and customer-safe boolean.
 
 `Source`
@@ -126,7 +127,7 @@ This preserves the useful behavior proven by `fabric-digest` without storing cre
 - Routing: platforms and tags.
 - Operations: last checked, health, and notes.
 
-`Guidance`
+`PrioritySignal`
 
 - Identity: id and title.
 - Audience and need statement.
@@ -149,7 +150,7 @@ Phase 3 adds:
 
 - Browser-helper import for LinkedIn post content and author-comment links.
 - Source health telemetry.
-- A private authenticated configuration service if browser-local guidance is no longer sufficient.
+- A private authenticated configuration service if browser-local priority signals are no longer sufficient.
 
 ## Delivery phases
 
@@ -159,7 +160,7 @@ Phase 3 adds:
 - [x] Select architecture and working product name.
 - [x] Implement the responsive application shell and briefing dashboard.
 - [x] Implement search, filters, sorting, hierarchy, collapse/expand, and pinning.
-- [x] Implement source and guidance management.
+- [x] Implement source and priority-signal management.
 - [x] Implement import/export and browser persistence.
 - [x] Add normalized seed data and customer-safe relevance explanations.
 - [x] Add tests and accessibility checks.
@@ -170,13 +171,13 @@ Exit criteria:
 - The production build succeeds.
 - Core filtering and persistence tests pass.
 - The critical flows work at desktop and mobile widths.
-- No credentials or customer-confidential guidance are committed.
+- No credentials or customer-confidential priority signals are committed.
 
 ### Milestone 2 - Automated public-source ingestion
 
 - [ ] Add RSS/Atom collectors.
 - [ ] Add deduplication, source health, and state transitions.
-- [ ] Add optional LLM summaries and guidance matching.
+- [ ] Add optional LLM summaries and priority matching.
 - [ ] Add scheduled refresh workflow with explicit failure reporting.
 - [ ] Add a review gate before customer-safe publication.
 
@@ -204,10 +205,10 @@ Exit criteria:
 
 - [ ] Decide whether cross-device/private persistence is required.
 - [ ] If required, add Microsoft Entra ID authentication and a minimal Azure API.
-- [ ] Store private guidance separately from the public GitHub Pages artifact.
+- [ ] Store private priority signals separately from the public GitHub Pages artifact.
 - [ ] Add role-based access and an audit trail.
 
-This milestone is intentionally gated. A public static site must not silently become a store for account-sensitive customer guidance.
+This milestone is intentionally gated. A public static site must not silently become a store for account-sensitive customer priorities.
 
 ## Quality and safety gates
 
@@ -225,9 +226,9 @@ This milestone is intentionally gated. A public static site must not silently be
 
 | Decision | Rationale |
 | --- | --- |
-| Product name: Strategic Signal | Broad enough for Fabric, Foundry, Databricks, SQL, and future topics; professional for customer use. |
+| Product name: Strategic Signal by Igor | Preserves the professional product name while making Igor's personal curation unmistakable. |
 | GitHub Pages for the customer experience | Fast, inexpensive, proven by the FabCon project, and easy to share. |
-| Local-first source and guidance edits | Prevents customer guidance and credentials from being exposed by a public static host. |
+| Local-first source and priority edits | Prevents customer priorities and credentials from being exposed by a public static host. |
 | Official sources outrank social sources | Preserves the evidence discipline established by Fabric Digest. |
 | LinkedIn capture is user-triggered | Works with the signed-in browser session and avoids brittle unattended scraping. |
 | Two-level taxonomy | Supports fast scanning while remaining flexible as the topic set grows. |

@@ -96,6 +96,7 @@ export interface SignalFilters {
   platform: string;
   section: string;
   audience: string;
+  prioritySignal: string;
   status: string;
   evidence: string;
   protectedOnly: boolean;
@@ -104,4 +105,4 @@ export interface SignalFilters {
 
 export type SignalSort = "relevance" | "newest" | "title";
 
-export type AppView = "briefing" | "sources" | "guidance" | "about";
+export type AppView = "briefing" | "sources" | "priorities" | "about";

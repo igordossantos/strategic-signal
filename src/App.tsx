@@ -2,7 +2,6 @@ import {
   Download,
   Menu,
   Moon,
-  Radar,
   Sun,
   Upload,
   X,
@@ -11,16 +10,18 @@ import {
   type ChangeEvent,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
 import { AboutView } from "./components/AboutView";
 import { BriefingView } from "./components/BriefingView";
 import { GuidanceView } from "./components/GuidanceView";
+import { IgorMark } from "./components/IgorMark";
 import { SourcesView } from "./components/SourcesView";
 import { Button } from "./components/ui";
 import { seedGuidance, seedSignals, seedSources } from "./data/seed";
-import { emptyFilters } from "./lib/signals";
+import { applyPrioritySignals, emptyFilters } from "./lib/signals";
 import {
   downloadText,
   loadWorkspace,
@@ -43,7 +44,8 @@ const starterWorkspace: Workspace = {
 
 function viewFromHash(): AppView {
   const hash = window.location.hash.replace(/^#\/?/, "");
-  if (hash === "sources" || hash === "guidance" || hash === "about") return hash;
+  if (hash === "guidance") return "priorities";
+  if (hash === "sources" || hash === "priorities" || hash === "about") return hash;
   return "briefing";
 }
 
@@ -70,6 +72,10 @@ function App() {
   const [notice, setNotice] = useState<Notice | null>(null);
   const importInput = useRef<HTMLInputElement>(null);
   const noticeId = useRef(0);
+  const personalizedSignals = useMemo(
+    () => applyPrioritySignals(seedSignals, workspace.guidance),
+    [workspace.guidance],
+  );
 
   const notify = useCallback(
     (message: string, tone: "success" | "error" = "success") => {
@@ -130,9 +136,9 @@ function App() {
 
   useEffect(() => {
     const pageNames: Record<AppView, string> = {
-      briefing: "Strategic Signal",
+      briefing: "Strategic Signal by Igor",
       sources: "Sources | Strategic Signal",
-      guidance: "Guidance | Strategic Signal",
+      priorities: "Priority Signals | Strategic Signal",
       about: "About | Strategic Signal",
     };
     document.title = pageNames[view];
@@ -194,13 +200,16 @@ function App() {
       </a>
       <header className="app-header">
         <div className="header-inner">
-          <a className="brand" href="#briefing" aria-label="Strategic Signal home">
+          <a className="brand" href="#briefing" aria-label="Strategic Signal by Igor home">
             <span className="brand-mark" aria-hidden="true">
-              <Radar size={21} />
+              <IgorMark size={27} />
             </span>
-            <span>
-              <strong>Strategic</strong>
-              <em>Signal</em>
+            <span className="brand-lockup">
+              <span>
+                <strong>Strategic</strong>
+                <em>Signal</em>
+              </span>
+              <small>Curated by Igor</small>
             </span>
           </a>
 
@@ -212,7 +221,7 @@ function App() {
               [
                 ["briefing", "Briefing"],
                 ["sources", "Sources"],
-                ["guidance", "Guidance"],
+                ["priorities", "Priority signals"],
                 ["about", "How it works"],
               ] as const
             ).map(([id, label]) => (
@@ -290,8 +299,9 @@ function App() {
 
       {view === "briefing" ? (
         <BriefingView
-          signals={seedSignals}
+          signals={personalizedSignals}
           sources={workspace.sources}
+          prioritySignals={workspace.guidance}
           filters={filters}
           onFiltersChange={setFilters}
           sort={sort}
@@ -310,7 +320,7 @@ function App() {
           onNotify={notify}
         />
       ) : null}
-      {view === "guidance" ? (
+      {view === "priorities" ? (
         <GuidanceView
           guidance={workspace.guidance}
           onChange={(guidance) =>
@@ -325,11 +335,11 @@ function App() {
         <div className="page-shell">
           <div className="footer-brand">
             <span className="brand-mark" aria-hidden="true">
-              <Radar size={18} />
+              <IgorMark size={24} />
             </span>
             <div>
-              <strong>Strategic Signal</strong>
-              <span>Technology intelligence for the conversations that matter.</span>
+              <strong>Strategic Signal by Igor</strong>
+              <span>Personally curated technology intelligence for customers.</span>
             </div>
           </div>
           <p>

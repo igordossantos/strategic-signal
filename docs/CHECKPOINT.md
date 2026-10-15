@@ -15,7 +15,7 @@ Date: 2026-10-15
 - Created the detailed implementation plan in `docs/IMPLEMENTATION_PLAN.md`.
 - Scaffolded the new application.
 - Built the responsive briefing dashboard, two-level collapsible hierarchy, search, filters, sorting, protected-signal treatment, and discussion list.
-- Built source and guidance management with validated browser-local persistence and workspace import/export.
+- Built source and priority-signal management with validated browser-local persistence and workspace import/export.
 - Added a normalized research snapshot with evidence grades, source links, source discrepancies, next steps, and audience-specific relevance explanations.
 - Added responsive light and dark themes, keyboard search, reduced-motion support, print styling, and customer-safe disclaimers.
 - Added GitHub Actions validation and GitHub Pages deployment.
@@ -33,7 +33,7 @@ Date: 2026-10-15
 6. Desktop and mobile browser checks show no horizontal overflow.
 7. Audience filtering, section hierarchy, pinning, and the discussion dialog work.
 8. Source creation persists after reload and can be removed.
-9. Guidance creation persists after reload.
+9. Priority signal creation persists after reload.
 10. Mobile navigation works at a 390-pixel viewport.
 
 ### Deployment record
@@ -45,11 +45,37 @@ Date: 2026-10-15
 - Deployment result: successful
 - Production smoke test: 11 signal cards rendered, light theme initialized, no horizontal overflow at a 1280-pixel viewport
 
+## Checkpoint 02 - Igor brand and dynamic priority lens
+
+Date: 2026-10-15
+
+### Completed
+
+- Reframed the product as **Strategic Signal by Igor** and made Igor's personal curation visible in the header, hero, metadata, About page, and footer.
+- Replaced the radar-style mark with an original monogram: a central `I`, signal arcs, and a signal point.
+- Opened the product language beyond a fixed Fabric, Foundry, Databricks, or SQL list.
+- Replaced the user-facing term **Guidance** with **Priority signals**.
+- Made customer and subsidiary filters derive dynamically from active priority signals.
+- Added deterministic dynamic matching so a new priority signal immediately creates traceable relevance mappings against matching technology news.
+- Added a specific priority-signal filter in addition to the customer/subsidiary filter.
+- Shifted the experience to graphite surfaces with restrained blue interaction and brand accents.
+- Moved **Expand all**, **Collapse all**, and each section's disclosure control to the left.
+- Added automated coverage for dynamic priority matching.
+
+### Validation completed
+
+- Ten Vitest tests pass, including dynamic priority-signal matching.
+- Four Node repository and safety tests pass.
+- Lint, TypeScript, production build, and full dependency audit pass.
+- Desktop browser verification confirms the expand/collapse controls are left of the results summary.
+- Section disclosure controls render before the section mark and title.
+- Mobile verification at 390 pixels shows no horizontal overflow.
+
 ### Known boundaries
 
 - GitHub Pages cannot directly read authenticated LinkedIn content.
 - LinkedIn post history is not completely enumerable through the tested browser surface.
-- Source and guidance edits are browser-local in Milestone 1.
+- Source edits and priority signals are browser-local in Milestone 1.
 - Automated LLM enrichment requires a separately configured secret and is planned for Milestone 2.
 
 ### Resume point
