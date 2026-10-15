@@ -4,7 +4,7 @@ Strategic Signal turns trusted Data, Analytics, and AI sources into fast, custom
 
 It is designed for Igor Dos Santos, Cloud and AI Solutions Engineer at Microsoft, and supports briefings across Microsoft Fabric, Microsoft Foundry, Azure Databricks, Microsoft SQL, Azure AI, and adjacent platform topics.
 
-Planned public URL: <https://igordossantos.github.io/strategic-signal/>
+Public URL: <https://igordossantos.github.io/strategic-signal/>
 
 ## Current release
 

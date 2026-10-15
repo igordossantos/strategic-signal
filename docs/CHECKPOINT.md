@@ -20,6 +20,8 @@ Date: 2026-10-15
 - Added responsive light and dark themes, keyboard search, reduced-motion support, print styling, and customer-safe disclaimers.
 - Added GitHub Actions validation and GitHub Pages deployment.
 - Removed unused dependencies; the full npm audit now reports zero vulnerabilities.
+- Published the public repository at `https://github.com/igordossantos/strategic-signal`.
+- Published and smoke-tested the application at `https://igordossantos.github.io/strategic-signal/`.
 
 ### Validation completed
 
@@ -34,9 +36,14 @@ Date: 2026-10-15
 9. Guidance creation persists after reload.
 10. Mobile navigation works at a 390-pixel viewport.
 
-### In progress
+### Deployment record
 
-- Publishing the verified Milestone 1 application to `igordossantos/strategic-signal`.
+- Repository: `igordossantos/strategic-signal`
+- GitHub Pages: `https://igordossantos.github.io/strategic-signal/`
+- Initial release commit: `62a39de40989b45f34b5c4cd7e25fecd60335f57`
+- GitHub Actions run: `38764085574`
+- Deployment result: successful
+- Production smoke test: 11 signal cards rendered, light theme initialized, no horizontal overflow at a 1280-pixel viewport
 
 ### Known boundaries
 
