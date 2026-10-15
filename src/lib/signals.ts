@@ -277,27 +277,51 @@ export function applyPrioritySignals(
         .filter((id): id is string => Boolean(id)),
     );
     const haystack = prioritySearchText(signal);
+    const signalHashtags = new Set(signal.hashtags ?? []);
 
     for (const prioritySignal of active) {
       if (mappedIds.has(prioritySignal.id)) continue;
-      const phrases = uniqueSorted([
-        ...prioritySignal.matchTerms,
-        ...prioritySignal.tags,
+      const lensHashtags = uniqueSorted([
+        normalizeHashtag(prioritySignal.lensHashtag),
+        ...prioritySignal.tags.map(normalizeHashtag),
       ]);
-      const matches = phrases.filter((phrase) =>
+      const hashtagMatches = lensHashtags.filter((hashtag) =>
+        signalHashtags.has(hashtag),
+      );
+      const phraseMatches = prioritySignal.matchTerms.filter((phrase) =>
         haystack.includes(normalize(phrase)),
       );
-      if (!matches.length) continue;
+      if (!hashtagMatches.length && !phraseMatches.length) continue;
+      const directLensMatch = hashtagMatches.includes(
+        normalizeHashtag(prioritySignal.lensHashtag),
+      );
       const score = Math.min(
         99,
         priorityBase[prioritySignal.priority] +
-          Math.min(11, Math.max(0, matches.length - 1) * 3),
+          (directLensMatch ? 11 : 0) +
+          Math.min(9, hashtagMatches.length * 3 + phraseMatches.length * 2),
       );
+      const reasons = [
+        ...(directLensMatch
+          ? [`direct tag #${normalizeHashtag(prioritySignal.lensHashtag)}`]
+          : []),
+        ...(!directLensMatch && hashtagMatches.length
+          ? [
+              `hashtags ${hashtagMatches
+                .slice(0, 3)
+                .map((tag) => `#${tag}`)
+                .join(", ")}`,
+            ]
+          : []),
+        ...(phraseMatches.length
+          ? [`phrases ${phraseMatches.slice(0, 2).join(", ")}`]
+          : []),
+      ];
       relevance.push({
         audience: prioritySignal.audience,
         guidanceId: prioritySignal.id,
         score,
-        reason: `This aligns with the priority signal “${prioritySignal.title}” through ${matches.slice(0, 3).join(", ")}. It is a suggested discussion connection, not a statement about the customer's current environment.`,
+        reason: `This aligns with the priority lens “${prioritySignal.title}” through ${reasons.join(" and ")}. It is a suggested discussion connection, not a statement about the customer's current environment.`,
       });
     }
 

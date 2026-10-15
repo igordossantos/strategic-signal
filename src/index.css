@@ -767,6 +767,10 @@ p {
   gap: 10px;
 }
 
+.priority-lens-body {
+  min-width: 0;
+}
+
 .priority-lens-controls .select-field select {
   min-height: 42px;
   background: var(--cp-surface);
@@ -774,6 +778,47 @@ p {
 
 .priority-lens-controls .button {
   white-space: nowrap;
+}
+
+.priority-lens-hashtags {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.priority-lens-hashtags > span {
+  flex: 0 0 auto;
+  padding-top: 4px;
+  color: var(--cp-text-muted);
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.priority-lens-hashtags > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.priority-lens-hashtags button {
+  padding: 3px 8px;
+  border: 1px solid color-mix(in srgb, var(--cp-brand) 28%, var(--cp-border));
+  border-radius: 999px;
+  background: var(--cp-brand-soft);
+  color: var(--cp-brand);
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.priority-lens-hashtags button:hover,
+.priority-lens-hashtags button.hashtag-active {
+  border-color: var(--cp-brand);
+  background: var(--cp-brand);
+  color: var(--cp-brand-fg);
 }
 
 .filter-panel {
@@ -1929,7 +1974,8 @@ p {
 }
 
 .personal-hashtag-list > span,
-.hashtag-suggestions > span {
+.hashtag-suggestions > span,
+.lens-hashtag-suggestions > span {
   display: block;
   margin-bottom: 8px;
   color: var(--cp-text-muted);
@@ -1940,14 +1986,16 @@ p {
 }
 
 .personal-hashtag-list > div,
-.hashtag-suggestions > div {
+.hashtag-suggestions > div,
+.lens-hashtag-suggestions > div {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
 .personal-hashtag-list button,
-.hashtag-suggestions button {
+.hashtag-suggestions button,
+.lens-hashtag-suggestions button {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -1962,8 +2010,31 @@ p {
 }
 
 .personal-hashtag-list button:hover,
-.hashtag-suggestions button:hover {
+.hashtag-suggestions button:hover,
+.lens-hashtag-suggestions button:hover {
   border-color: var(--cp-brand);
+}
+
+.lens-hashtag-suggestions button {
+  display: grid;
+  grid-template-columns: auto auto;
+  text-align: left;
+}
+
+.lens-hashtag-suggestions button small {
+  grid-column: 1 / -1;
+  max-width: 210px;
+  overflow: hidden;
+  color: var(--cp-text-muted);
+  font-size: 0.64rem;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lens-hashtag-suggestions button:disabled {
+  cursor: default;
+  opacity: 0.5;
 }
 
 .personal-hashtag-list p {

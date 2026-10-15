@@ -20,8 +20,10 @@ Milestone 1 delivers:
 - Automatic topic hashtags plus personal per-item hashtags.
 - Clickable hashtag filtering and a personal hashtag editor on every signal card.
 - Hashtags included in Markdown, CSV, and workspace exports.
+- Priority-lens hashtags offered directly inside the item hashtag editor.
 - Source and priority-signal management screens.
 - Dynamic customer, subsidiary, and priority filters generated from active priority signals.
+- Hashtag-powered Priority Lenses: one primary direct-assignment hashtag, supporting topic hashtags, and optional phrase fallbacks.
 - A reusable archive imported from both predecessor projects.
 - A dedicated Collection screen for selecting people, sources, topics, and exact inclusive date windows.
 - Archive-only reuse without a new network collection.

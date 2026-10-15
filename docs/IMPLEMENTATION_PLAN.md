@@ -78,6 +78,9 @@ Constraints to address:
 
 - Add dated customer needs and priorities.
 - Assign an audience, priority, effective date, technologies, and matching phrases.
+- Give each priority one primary lens hashtag for direct item assignment.
+- Use supporting hashtags as the main automatic matching mechanism and phrases only as fallback evidence.
+- Surface active lens hashtags in the briefing and item hashtag editor.
 - Keep priority signals local to the browser unless Igor explicitly exports them.
 - Generate customer, subsidiary, and priority filters dynamically from active priority signals.
 - Explain every relevance match: which priority signal matched, why it matters, and the confidence of the mapping.
@@ -135,7 +138,7 @@ This preserves the useful behavior proven by `fabric-digest` without storing cre
 - Identity: id and title.
 - Audience and need statement.
 - Priority and effective date.
-- Match phrases, technologies, and optional expiration.
+- Primary lens hashtag, supporting hashtags, fallback match phrases, technologies, and optional expiration.
 
 ### Collection pipeline
 

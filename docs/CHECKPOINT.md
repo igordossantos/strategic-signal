@@ -164,6 +164,31 @@ Date: 2026-10-15
 - GitHub Pages run: `38774287957`
 - Production smoke test: 11 fast-default cards, 55 visible automatic hashtags, 11 personal-tag editors, 52 scoped filter options, and no horizontal overflow at 1280 pixels
 
+## Checkpoint 05 - Hashtag-powered Priority Lenses
+
+Date: 2026-10-15
+
+### Completed
+
+- Added one primary direct-assignment hashtag to every Priority Signal.
+- Converted Priority Signal topic tags into normalized supporting hashtags.
+- Made exact item-hashtag intersections the primary generated relevance mechanism.
+- Retained additional matching phrases as a fallback for concepts not represented by a hashtag.
+- Added active lens hashtags beneath the customer and priority selectors.
+- Added every active primary lens hashtag to the item hashtag editor.
+- Added backward-compatible workspace migration that derives a lens hashtag for existing Priority Signals.
+- Added direct-tag evidence to generated relevance explanations.
+
+### Verified behavior
+
+- Added `#farmers-data-products` to Workspace-level surge protection.
+- Selected Farmers Insurance and Governed data product management.
+- The newly tagged item appeared immediately in that Priority Lens.
+- The explanation explicitly cited `direct tag #farmers-data-products`.
+- The lens assignment persisted after reload.
+- Twenty-two automated tests pass.
+- Lint, TypeScript, production build, dependency audit, direct hashtag assignment, and workspace migration pass.
+
 ### Known boundaries
 
 - GitHub Pages cannot directly read authenticated LinkedIn content.

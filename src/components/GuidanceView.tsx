@@ -3,6 +3,7 @@ import {
   Check,
   CircleAlert,
   Crosshair,
+  Hash,
   Lightbulb,
   Pencil,
   Plus,
@@ -12,7 +13,7 @@ import {
   Users,
 } from "lucide-react";
 import { type FormEvent, useMemo, useState } from "react";
-import { formatDate } from "../lib/signals";
+import { formatDate, normalizeHashtag } from "../lib/signals";
 import { createId } from "../lib/workspace";
 import type { Guidance, GuidancePriority } from "../types";
 import { Badge, Button, EmptyState, Modal } from "./ui";
@@ -27,6 +28,7 @@ interface GuidanceDraft {
   id?: string;
   title: string;
   audience: string;
+  lensHashtag: string;
   need: string;
   priority: GuidancePriority;
   effectiveDate: string;
@@ -37,6 +39,7 @@ interface GuidanceDraft {
 const emptyDraft: GuidanceDraft = {
   title: "",
   audience: "",
+  lensHashtag: "",
   need: "",
   priority: "high",
   effectiveDate: new Date().toISOString().slice(0, 10),
@@ -56,6 +59,7 @@ function toDraft(item: Guidance): GuidanceDraft {
     id: item.id,
     title: item.title,
     audience: item.audience,
+    lensHashtag: item.lensHashtag,
     need: item.need,
     priority: item.priority,
     effectiveDate: item.effectiveDate,
@@ -96,6 +100,7 @@ export function GuidanceView({
         return [
           item.title,
           item.audience,
+          item.lensHashtag,
           item.need,
           item.priority,
           ...item.tags,
@@ -140,14 +145,19 @@ export function GuidanceView({
       setFormError("Title, audience, need, and effective date are required.");
       return;
     }
+    const id = draft.id ?? createId("priority", draft.title);
+    const lensHashtag =
+      normalizeHashtag(draft.lensHashtag) ||
+      normalizeHashtag(`${draft.audience}-${draft.title}`);
     const next: Guidance = {
-      id: draft.id ?? createId("priority", draft.title),
+      id,
       title: draft.title.trim(),
       audience: draft.audience.trim(),
+      lensHashtag,
       need: draft.need.trim(),
       priority: draft.priority,
       effectiveDate: draft.effectiveDate,
-      tags: parseList(draft.tags),
+      tags: parseList(draft.tags).map(normalizeHashtag).filter(Boolean),
       matchTerms: parseList(draft.matchTerms),
       active: draft.id
         ? (guidance.find((item) => item.id === draft.id)?.active ?? true)
@@ -197,7 +207,7 @@ export function GuidanceView({
           <p>
             Tell Strategic Signal what matters to each customer, subsidiary, or
             conversation. Every active signal immediately becomes a briefing
-            filter and a traceable relevance lens.
+            filter and a traceable hashtag-powered relevance lens.
           </p>
         </div>
         <Button type="button" variant="primary" onClick={openCreate}>
@@ -319,6 +329,10 @@ export function GuidanceView({
                   <CalendarDays size={13} aria-hidden="true" />
                   Since {formatDate(item.effectiveDate)}
                 </Badge>
+                <Badge tone="accent">
+                  <Hash size={13} aria-hidden="true" />
+                  {item.lensHashtag}
+                </Badge>
               </div>
 
               <p className="guidance-need">{item.need}</p>
@@ -326,7 +340,7 @@ export function GuidanceView({
               <div className="guidance-match">
                 <div>
                   <Lightbulb size={16} aria-hidden="true" />
-                  <strong>Match language</strong>
+                  <strong>Additional phrase matching</strong>
                 </div>
                 <p>
                   {item.matchTerms.length
@@ -336,8 +350,8 @@ export function GuidanceView({
               </div>
 
               <div className="tag-list" aria-label={`Topics for ${item.title}`}>
-                {item.tags.map((tag) => (
-                  <span key={tag}>{tag}</span>
+                {item.tags.map(normalizeHashtag).filter(Boolean).map((tag) => (
+                  <span key={tag}>#{tag}</span>
                 ))}
               </div>
 
@@ -389,9 +403,10 @@ export function GuidanceView({
         <div>
           <strong>How relevance is written</strong>
           <p>
-            Priority signals influence ranking and the "why this may matter"
-            explanation. They never turn a suggested use case into a statement
-            about the customer's current environment.
+            An item's automatic or personal hashtags can place it directly into
+            a priority lens. Additional phrases provide fallback matching.
+            Neither path turns a suggested use case into a statement about the
+            customer's current environment.
           </p>
         </div>
       </div>
@@ -458,6 +473,24 @@ export function GuidanceView({
               />
             </label>
             <label className="form-field form-field-wide">
+              <span>Primary lens hashtag</span>
+              <input
+                value={draft.lensHashtag}
+                onChange={(event) =>
+                  setDraft((value) => ({
+                    ...value,
+                    lensHashtag: event.target.value,
+                  }))
+                }
+                placeholder="farmers-data-products"
+              />
+              <small>
+                Tag any news item with this hashtag to place it directly into
+                this priority lens. A value is generated automatically when left
+                blank.
+              </small>
+            </label>
+            <label className="form-field form-field-wide">
               <span>Customer need</span>
               <textarea
                 rows={4}
@@ -484,17 +517,17 @@ export function GuidanceView({
               />
             </label>
             <label className="form-field">
-              <span>Tags</span>
+              <span>Supporting hashtags</span>
               <input
                 value={draft.tags}
                 onChange={(event) =>
                   setDraft((value) => ({ ...value, tags: event.target.value }))
                 }
-                placeholder="governance, data products"
+                placeholder="governance, data-products"
               />
             </label>
             <label className="form-field form-field-wide">
-              <span>Matching phrases</span>
+              <span>Additional matching phrases</span>
               <input
                 value={draft.matchTerms}
                 onChange={(event) =>

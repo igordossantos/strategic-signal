@@ -112,6 +112,7 @@ describe("signal filtering", () => {
       id: "subsidiary-vector-priority",
       title: "Ground operational AI in governed data",
       audience: "Zurich Validation Subsidiary",
+      lensHashtag: "zurich-validation-ai",
       need: "Evaluate grounded retrieval over operational data.",
       priority: "high",
       effectiveDate: "2026-10-15",
@@ -134,6 +135,36 @@ describe("signal filtering", () => {
         (mapping) => mapping.guidanceId === priority.id,
       ),
     ).toBe(true);
+  });
+
+  it("uses a personal hashtag as a direct priority-lens assignment", () => {
+    const priority: Guidance = {
+      id: "farmers-follow-up",
+      title: "Customer follow-up",
+      audience: "Farmers Insurance",
+      lensHashtag: "customer-follow-up",
+      need: "Keep selected items in the next conversation.",
+      priority: "critical",
+      effectiveDate: "2026-10-15",
+      tags: [],
+      matchTerms: [],
+      active: true,
+    };
+    const signal = {
+      ...seedSignals[0],
+      relevance: [],
+      hashtags: [
+        ...automaticHashtags(seedSignals[0]),
+        "customer-follow-up",
+      ],
+    };
+    const [personalized] = applyPrioritySignals([signal], [priority]);
+    const mapping = personalized?.relevance.find(
+      (item) => item.guidanceId === priority.id,
+    );
+
+    expect(mapping?.score).toBe(99);
+    expect(mapping?.reason).toContain("direct tag #customer-follow-up");
   });
 });
 

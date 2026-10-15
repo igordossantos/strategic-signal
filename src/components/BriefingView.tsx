@@ -102,6 +102,37 @@ export function BriefingView({
         ),
     [filters.audience, prioritySignals],
   );
+  const activeLensHashtags = useMemo(() => {
+    const selected = prioritySignals.filter((item) => {
+      if (!item.active) return false;
+      if (
+        filters.prioritySignal &&
+        item.id !== filters.prioritySignal
+      ) {
+        return false;
+      }
+      if (filters.audience && item.audience !== filters.audience) {
+        return false;
+      }
+      return Boolean(filters.prioritySignal || filters.audience);
+    });
+    return uniqueSorted(
+      selected.flatMap((item) => [
+        normalizeHashtag(item.lensHashtag),
+        ...item.tags.map(normalizeHashtag),
+      ]),
+    );
+  }, [filters.audience, filters.prioritySignal, prioritySignals]);
+  const priorityLensSuggestions = useMemo(() => {
+    const byTag = new Map<string, string>();
+    for (const item of prioritySignals.filter((priority) => priority.active)) {
+      byTag.set(
+        normalizeHashtag(item.lensHashtag),
+        `${item.audience} · ${item.title}`,
+      );
+    }
+    return [...byTag].map(([tag, label]) => ({ tag, label }));
+  }, [prioritySignals]);
 
   useEffect(() => {
     const active = prioritySignals.filter((item) => item.active);
@@ -240,22 +271,25 @@ export function BriefingView({
     setTagInput("");
   }
 
-  function addTag(): void {
-    const normalized = normalizeHashtag(tagInput);
+  function addDraftHashtag(value: string): boolean {
+    const normalized = normalizeHashtag(value);
     if (!normalized) {
       onNotify("Enter a hashtag before adding it.", "error");
-      return;
+      return false;
     }
     if (tagDraft.includes(normalized)) {
-      setTagInput("");
-      return;
+      return true;
     }
     if (tagDraft.length >= 8) {
       onNotify("Personal hashtags are limited to eight per item.", "error");
-      return;
+      return false;
     }
     setTagDraft((current) => [...current, normalized]);
-    setTagInput("");
+    return true;
+  }
+
+  function addTag(): void {
+    if (addDraftHashtag(tagInput)) setTagInput("");
   }
 
   function saveTags(): void {
@@ -439,43 +473,72 @@ export function BriefingView({
             <span>Priority lens</span>
             <strong>Brief by the signals you give Igor</strong>
           </div>
-          <div className="priority-lens-controls">
-            <label className="select-field">
-              <span>Customer or subsidiary</span>
-              <select
-                value={filters.audience}
-                onChange={(event) => setFilter("audience", event.target.value)}
+          <div className="priority-lens-body">
+            <div className="priority-lens-controls">
+              <label className="select-field">
+                <span>Customer or subsidiary</span>
+                <select
+                  value={filters.audience}
+                  onChange={(event) =>
+                    setFilter("audience", event.target.value)
+                  }
+                >
+                  <option value="">All customers and audiences</option>
+                  {audiences.map((audience) => (
+                    <option value={audience} key={audience}>
+                      {audience}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="select-field">
+                <span>Priority signal</span>
+                <select
+                  value={filters.prioritySignal}
+                  onChange={(event) =>
+                    setFilter("prioritySignal", event.target.value)
+                  }
+                >
+                  <option value="">All active priority signals</option>
+                  {availablePrioritySignals.map((item) => (
+                    <option value={item.id} key={item.id}>
+                      {item.audience} · {item.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <a
+                className="button button-secondary button-normal"
+                href="#priorities"
               >
-                <option value="">All customers and audiences</option>
-                {audiences.map((audience) => (
-                  <option value={audience} key={audience}>
-                    {audience}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="select-field">
-              <span>Priority signal</span>
-              <select
-                value={filters.prioritySignal}
-                onChange={(event) =>
-                  setFilter("prioritySignal", event.target.value)
-                }
-              >
-                <option value="">All active priority signals</option>
-                {availablePrioritySignals.map((item) => (
-                  <option value={item.id} key={item.id}>
-                    {item.audience} · {item.title}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <a
-              className="button button-secondary button-normal"
-              href="#priorities"
-            >
-              Manage signals
-            </a>
+                Manage signals
+              </a>
+            </div>
+            {activeLensHashtags.length ? (
+              <div className="priority-lens-hashtags">
+                <span>Powered by</span>
+                <div>
+                  {activeLensHashtags.map((hashtag) => (
+                    <button
+                      type="button"
+                      key={hashtag}
+                      className={
+                        filters.hashtag === hashtag ? "hashtag-active" : ""
+                      }
+                      aria-pressed={filters.hashtag === hashtag}
+                      onClick={() =>
+                        setFilter(
+                          "hashtag",
+                          filters.hashtag === hashtag ? "" : hashtag,
+                        )
+                      }
+                    >
+                      #{hashtag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
         </section>
 
@@ -856,6 +919,27 @@ export function BriefingView({
             )}
           </div>
 
+          {priorityLensSuggestions.length ? (
+            <div className="lens-hashtag-suggestions">
+              <span>Assign directly to a priority lens</span>
+              <div>
+                {priorityLensSuggestions.map(({ tag, label }) => (
+                  <button
+                    type="button"
+                    key={tag}
+                    disabled={tagDraft.includes(tag)}
+                    onClick={() => addDraftHashtag(tag)}
+                    title={label}
+                  >
+                    <Hash size={13} aria-hidden="true" />
+                    {tag}
+                    <small>{label}</small>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           {tagEditorSignal?.hashtags?.some(
             (tag) => !tagDraft.includes(tag),
           ) ? (
@@ -869,16 +953,7 @@ export function BriefingView({
                     <button
                       type="button"
                       key={tag}
-                      onClick={() => {
-                        if (tagDraft.length >= 8) {
-                          onNotify(
-                            "Personal hashtags are limited to eight per item.",
-                            "error",
-                          );
-                          return;
-                        }
-                        setTagDraft((current) => [...current, tag]);
-                      }}
+                      onClick={() => addDraftHashtag(tag)}
                     >
                       + #{tag}
                     </button>

@@ -24,6 +24,7 @@ export interface Guidance {
   id: string;
   title: string;
   audience: string;
+  lensHashtag: string;
   need: string;
   priority: GuidancePriority;
   effectiveDate: string;

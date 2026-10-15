@@ -10,6 +10,19 @@ function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((item) => typeof item === "string");
 }
 
+function storedHashtag(value: string): string {
+  return value
+    .trim()
+    .replace(/^#+/, "")
+    .toLocaleLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 40);
+}
+
 function isSource(value: unknown): value is Source {
   if (!isRecord(value)) return false;
   return (
@@ -64,7 +77,15 @@ export function validateWorkspace(value: unknown): Workspace {
   ) {
     throw new Error("The workspace contains invalid personal hashtags.");
   }
-  return { ...value, itemTags } as unknown as Workspace;
+  const guidance = (value.guidance as Guidance[]).map((item) => ({
+    ...item,
+    lensHashtag:
+      typeof item.lensHashtag === "string" && storedHashtag(item.lensHashtag)
+        ? storedHashtag(item.lensHashtag)
+        : storedHashtag(item.id || item.title),
+    tags: item.tags.map(storedHashtag).filter(Boolean),
+  }));
+  return { ...value, guidance, itemTags } as unknown as Workspace;
 }
 
 export interface WorkspaceLoadResult {

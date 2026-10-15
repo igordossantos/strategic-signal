@@ -65,16 +65,20 @@ describe("workspace persistence", () => {
   });
 
   it("migrates legacy workspaces without personal hashtags", () => {
+    const legacyGuidance = seedGuidance.map(
+      ({ lensHashtag: _lensHashtag, ...item }) => item,
+    );
     const migrated = parseWorkspace(
       JSON.stringify({
         version: 1,
         sources: seedSources,
-        guidance: seedGuidance,
+        guidance: legacyGuidance,
         pinnedSignalIds: [],
       }),
     );
 
     expect(migrated.itemTags).toEqual({});
+    expect(migrated.guidance.every((item) => item.lensHashtag)).toBe(true);
   });
 
   it("surfaces corrupt saved data and uses the supplied fallback", () => {
