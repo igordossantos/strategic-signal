@@ -122,6 +122,15 @@ Date: 2026-10-15
 - Lint, TypeScript, production build, dependency audit, archive integrity, source-reference integrity, and invalid-date handling pass.
 - Mobile Collection view at 390 pixels has no horizontal overflow.
 
+### Deployment record
+
+- Release: `1.2.0`
+- Release commit: `aa0bfd2f53f49d8463dd9ef8adaa51c4f8331a4d`
+- GitHub Pages run: `38770890655`
+- Collection workflow run: `38771020992`
+- Collection workflow result: two feeds completed, zero failed, seven topic-matched items returned for October 1–15, 2026
+- Production smoke test: 259 archive signals, 208 FabCon announcements, 20 LinkedIn people, 41 selectable sources, two automatic feeds selected, exact requested date window loaded, no horizontal overflow
+
 ### Known boundaries
 
 - GitHub Pages cannot directly read authenticated LinkedIn content.
