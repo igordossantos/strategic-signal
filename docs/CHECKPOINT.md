@@ -339,6 +339,299 @@ Date: 2026-10-15
 - Production smoke test: 11 selectable current items, one-item reading digest generation, Azure secret guidance, AI workflow status refresh from Running to Succeeded, and no horizontal overflow
 - Repository secret inspection found no Azure OpenAI secrets yet; real model execution remains intentionally blocked until Igor configures the endpoint, API key, and deployment.
 
+## Checkpoint 09 - Consolidated handoff
+
+Date: 2026-10-15
+Checkpoint time: 3:24 PM Eastern
+
+### Live resources
+
+- Application: `https://igordossantos.github.io/strategic-signal/`
+- Repository: `https://github.com/igordossantos/strategic-signal`
+- Collection screen: `https://igordossantos.github.io/strategic-signal/#collect`
+- Digest Builder: `https://igordossantos.github.io/strategic-signal/#digest`
+- Current release: `1.7.0`
+- Current checkpoint commit before this handoff: `ed0af93339d97ee4377b39414407047f6a49de80`
+- Feature commit for Digest Builder: `d783f8d7cb4ad46619894931d4ef22fa693b0ec8`
+
+### Product state
+
+Strategic Signal by Igor is a public static GitHub Pages application with a
+private, versioned browser workspace. The public repository contains public
+source definitions, the normalized historical archive, application code, and
+GitHub Actions workflows. Customer priorities, personal hashtags, imported run
+results, selections, and imported AI digests remain in the browser unless Igor
+explicitly exports the workspace.
+
+The application currently provides:
+
+- Personalized Strategic Signal by Igor brand and custom `I + signal` monogram.
+- Fast current briefing with search, filters, hashtags, priority lenses,
+  collapsible hierarchy, discussion selection, and exports.
+- Source management and in-place source CRUD from Collection.
+- Priority Signals powered by direct and supporting hashtags.
+- Exact date-window collection planning with Everything or Specific topics.
+- Archive-first reuse and run-result import.
+- Live GitHub Actions execution status.
+- Persistent duplicate detection across archive, same run, and prior runs.
+- Digest selection, immediate local reading digest, Azure OpenAI workflow
+  preparation, AI run status, and private digest import.
+
+### Reusable data
+
+- FabCon announcements imported: `208`
+- Fabric Digest indexed signals imported: `51`
+- Normalized archive signals: `259`
+- Effective combined catalog before browser-local imports: `261`
+- Fast default current cards: `11`
+- Normalized source definitions: `41`
+- Curated LinkedIn people: `20`
+- Prior Fabric Digest run records: `5`
+- Existing legacy fingerprints retained: yes
+
+### Collection workflow
+
+Workflow: `.github/workflows/collect.yml`
+
+Inputs:
+
+- `request_id`
+- Inclusive `from` and `to` dates
+- Comma-separated source ids
+- Optional topics
+- Optional browser-local source override JSON
+
+Collection modes:
+
+- Automatic RSS/Atom
+- Browser-assisted LinkedIn
+- Reference/manual
+
+Output artifact:
+
+```text
+collection-runs/
+  run.json
+dedup-index.json
+```
+
+To centralize a run:
+
+1. Open Collect.
+2. Find the completed run under Execution status.
+3. Select View run.
+4. Download the `strategic-signal-<from>-to-<to>` artifact.
+5. Extract the ZIP.
+6. Select Import result in Collect.
+7. Choose `collection-runs/run.json`.
+
+Only new items are imported. Archive matches, prior-run duplicates, same-run
+duplicates, invalid records, and already-centralized titles or URLs are skipped.
+
+### Duplicate detection
+
+Each observation receives SHA-256 fingerprints for:
+
+- Canonical URL
+- Normalized title
+- Normalized title plus normalized content
+- External feed guid, LinkedIn urn, or blog id
+
+Classification values:
+
+- `new`
+- `archive`
+- `prior-run`
+- `same-run`
+
+The importable `items` array contains only new items. The separate `duplicates`
+array preserves the reason and original reference for auditability.
+
+Persistent proof:
+
+- Run `38783172429`: one observed, one new, zero duplicates.
+- Run `38783322285`: one observed, zero new, one prior-run duplicate.
+- Run `38783794867`: cache-v5 proof; zero new, one prior-run duplicate.
+
+### Execution status
+
+The Collect screen reads the public GitHub Actions API without storing a token.
+It displays queued, running, succeeded, failed, and cancelled states, plus run
+id, attempt, timestamps, duration, result artifact availability, and active job
+progress. It refreshes every 90 seconds and supports manual refresh.
+
+Prepared browser requests now carry a stable request id. A request is shown as
+prepared but not dispatched until a matching GitHub workflow run appears.
+
+### Digest Builder
+
+Digest sources:
+
+- Current briefing
+- Browser-centralized collection results
+- Imported archive
+- Entire catalog
+
+Selection limits:
+
+- Local reading digest: `30` items
+- Azure OpenAI digest: `15` items
+- Workflow command safety limit: `25,000` characters
+
+Immediate local digest:
+
+- Requires no external model.
+- Groups selected items by technology and section.
+- Shows status, dates, summaries, generally-available count, protected-signal
+  count, and suggested next steps.
+
+AI digest:
+
+- Internal briefing, customer-ready, learning, or executive intent.
+- Concise, standard, or deep output.
+- Optional named audience and additional instructions.
+- JSON-mode generation.
+- Required-field validation.
+- Rejects references to unselected item ids.
+- Result remains a workflow artifact until imported into the browser.
+
+AI result structure:
+
+- Executive summary
+- Key themes
+- Must-know items
+- Customer connections
+- Questions to prepare for
+- Reading order
+- Caveats
+
+### Azure OpenAI configuration
+
+GitHub Models inference was retired in July 2026. The implemented strong-LLM
+path therefore uses Azure OpenAI / Microsoft Foundry.
+
+Required repository secrets are not configured yet:
+
+- `AZURE_OPENAI_ENDPOINT`
+- `AZURE_OPENAI_API_KEY`
+- `AZURE_OPENAI_DEPLOYMENT`
+
+Optional repository variable:
+
+- `AZURE_OPENAI_API_VERSION`
+- Default used by the workflow: `2024-10-21`
+
+The digest dry-run workflow `38786697205` succeeded. It validated workflow
+inputs, prompt construction, JSON-mode request generation, artifact upload, and
+status reporting without calling a model.
+
+Real model execution must remain blocked until the three required secrets are
+configured. Missing configuration fails explicitly and uploads
+`execution.log`; it does not return a success-shaped fallback.
+
+### Browser-local workspace
+
+Workspace schema version remains `1` with backward-compatible migration.
+
+Persisted browser data includes:
+
+- Sources
+- Deleted-source tombstones
+- Priority Signals
+- Discussion-list selection
+- Personal item hashtags
+- Centralized collection signals
+- Digest selection
+- Imported AI digests
+
+Workspace import and export remain available in the application header.
+
+### LinkedIn boundary
+
+LinkedIn remains browser-assisted:
+
+- No LinkedIn credentials are stored.
+- The activity history is not claimed to be fully enumerable.
+- Visible post content and author-labelled comment links require the signed-in
+  browser helper planned in the implementation plan.
+- Coverage limits must remain explicit in every run.
+
+### Validation baseline
+
+- Vitest tests: `17`
+- Node repository/workflow tests: `12`
+- Total automated tests: `29`
+- Lint: passing
+- TypeScript: passing
+- Production build: passing
+- Dependency audit: zero known vulnerabilities
+- Desktop smoke tests: passing
+- Mobile smoke tests: passing
+- Horizontal overflow: none in verified production views
+
+Validated user journeys:
+
+- Add, edit, select, delete, and persist sources.
+- Select all sources and run Everything mode.
+- Prepare exact date-window collection commands.
+- Observe live run status.
+- Import collection artifacts.
+- Exclude duplicate observations.
+- Add personal hashtags and direct-assign Priority Lenses.
+- Select digest items.
+- Build immediate local reading digest.
+- Prepare Azure OpenAI digest request.
+- Import and render structured AI digest.
+
+### Known operational boundaries
+
+- Collection artifacts require authenticated GitHub download.
+- Collection result import is deliberate and browser-local; it is not silently
+  published to the public site.
+- Azure OpenAI secrets are not configured.
+- A real model-generated digest has not yet run.
+- LinkedIn capture helper is not yet implemented.
+- Browser-local data is device/browser specific unless the workspace is
+  exported.
+- Cross-device private persistence remains a gated future milestone.
+
+### Exact resume priorities
+
+1. Configure the three Azure OpenAI repository secrets without placing their
+   values in source code or chat.
+2. Run one real Azure OpenAI digest against a small, non-sensitive selection.
+3. Validate model output against the selected evidence and customer-safe
+   wording rules.
+4. Download and import `digest.json`; verify the reading experience in
+   production.
+5. Build the user-triggered Edge/Chrome LinkedIn capture helper.
+6. Decide whether automatic collection results should remain deliberate local
+   imports or move to an authenticated private shared workspace.
+7. Decide collection schedule only after Igor chooses cadence and source scope.
+
+### Key implementation files
+
+- `src/App.tsx`
+- `src/components/BriefingView.tsx`
+- `src/components/CollectionView.tsx`
+- `src/components/DigestView.tsx`
+- `src/components/GuidanceView.tsx`
+- `src/components/SourceEditorModal.tsx`
+- `src/lib/archive.ts`
+- `src/lib/collectionImport.ts`
+- `src/lib/digestImport.ts`
+- `src/lib/githubRuns.ts`
+- `src/lib/signals.ts`
+- `src/lib/workspace.ts`
+- `scripts/import-legacy.mjs`
+- `scripts/collect.mjs`
+- `scripts/build-digest.mjs`
+- `.github/workflows/pages.yml`
+- `.github/workflows/collect.yml`
+- `.github/workflows/digest.yml`
+- `public/data/archive.json`
+- `config/collection-sources.json`
+
 ### Known boundaries
 
 - GitHub Pages cannot directly read authenticated LinkedIn content.
