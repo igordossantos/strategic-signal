@@ -1,0 +1,70 @@
+name: Collect technology signals
+
+on:
+  workflow_dispatch:
+    inputs:
+      from:
+        description: Inclusive start date (YYYY-MM-DD)
+        required: true
+        default: "2026-10-01"
+        type: string
+      to:
+        description: Inclusive end date (YYYY-MM-DD)
+        required: true
+        default: "2026-10-15"
+        type: string
+      source_ids:
+        description: Comma-separated source IDs
+        required: true
+        default: "fabric-updates-rss,pbi-updates-rss"
+        type: string
+      topics:
+        description: Optional comma-separated topics
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Collect selected date window
+        id: collect
+        continue-on-error: true
+        run: >
+          npm run collect --
+          --from "${{ inputs.from }}"
+          --to "${{ inputs.to }}"
+          --sources "${{ inputs.source_ids }}"
+          --topics "${{ inputs.topics }}"
+          --output "data/collection-runs/run.json"
+
+      - name: Upload collection result
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: strategic-signal-${{ inputs.from }}-to-${{ inputs.to }}
+          path: data/collection-runs/run.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Report collection failure
+        if: steps.collect.outcome == 'failure'
+        run: |
+          echo "::error::One or more selected sources failed. Download the artifact for explicit source errors."
+          exit 1

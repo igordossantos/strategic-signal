@@ -16,12 +16,14 @@ import {
 } from "react";
 import { AboutView } from "./components/AboutView";
 import { BriefingView } from "./components/BriefingView";
+import { CollectionView } from "./components/CollectionView";
 import { GuidanceView } from "./components/GuidanceView";
 import { IgorMark } from "./components/IgorMark";
 import { SourcesView } from "./components/SourcesView";
 import { Button } from "./components/ui";
 import { seedGuidance, seedSignals, seedSources } from "./data/seed";
 import { applyPrioritySignals, emptyFilters } from "./lib/signals";
+import { loadArchive } from "./lib/archive";
 import {
   downloadText,
   loadWorkspace,
@@ -30,6 +32,7 @@ import {
 } from "./lib/workspace";
 import type {
   AppView,
+  ArchiveBundle,
   SignalFilters,
   SignalSort,
   Workspace,
@@ -45,7 +48,14 @@ const starterWorkspace: Workspace = {
 function viewFromHash(): AppView {
   const hash = window.location.hash.replace(/^#\/?/, "");
   if (hash === "guidance") return "priorities";
-  if (hash === "sources" || hash === "priorities" || hash === "about") return hash;
+  if (
+    hash === "collect" ||
+    hash === "sources" ||
+    hash === "priorities" ||
+    hash === "about"
+  ) {
+    return hash;
+  }
   return "briefing";
 }
 
@@ -58,6 +68,7 @@ interface Notice {
 function App() {
   const [initial] = useState(() => loadWorkspace(starterWorkspace));
   const [workspace, setWorkspace] = useState<Workspace>(initial.workspace);
+  const [archive, setArchive] = useState<ArchiveBundle | null>(null);
   const [view, setView] = useState<AppView>(viewFromHash);
   const [filters, setFilters] = useState<SignalFilters>({
     ...emptyFilters,
@@ -72,9 +83,16 @@ function App() {
   const [notice, setNotice] = useState<Notice | null>(null);
   const importInput = useRef<HTMLInputElement>(null);
   const noticeId = useRef(0);
+  const availableSignals = useMemo(() => {
+    const byId = new Map(
+      (archive?.signals ?? []).map((signal) => [signal.id, signal]),
+    );
+    for (const signal of seedSignals) byId.set(signal.id, signal);
+    return [...byId.values()];
+  }, [archive]);
   const personalizedSignals = useMemo(
-    () => applyPrioritySignals(seedSignals, workspace.guidance),
-    [workspace.guidance],
+    () => applyPrioritySignals(availableSignals, workspace.guidance),
+    [availableSignals, workspace.guidance],
   );
 
   const notify = useCallback(
@@ -89,6 +107,35 @@ function App() {
     if (!initial.warning) return;
     notify(initial.warning, "error");
   }, [initial.warning, notify]);
+
+  useEffect(() => {
+    let active = true;
+    void loadArchive()
+      .then((loaded) => {
+        if (!active) return;
+        setArchive(loaded);
+        setWorkspace((current) => {
+          const existingIds = new Set(
+            current.sources.map((source) => source.id),
+          );
+          const missing = loaded.sources.filter(
+            (source) => !existingIds.has(source.id),
+          );
+          return missing.length
+            ? { ...current, sources: [...current.sources, ...missing] }
+            : current;
+        });
+      })
+      .catch((error: unknown) => {
+        if (!active) return;
+        const message =
+          error instanceof Error ? error.message : "Archive loading failed.";
+        notify(message, "error");
+      });
+    return () => {
+      active = false;
+    };
+  }, [notify]);
 
   useEffect(() => {
     try {
@@ -137,6 +184,7 @@ function App() {
   useEffect(() => {
     const pageNames: Record<AppView, string> = {
       briefing: "Strategic Signal by Igor",
+      collect: "Collection Runs | Strategic Signal",
       sources: "Sources | Strategic Signal",
       priorities: "Priority Signals | Strategic Signal",
       about: "About | Strategic Signal",
@@ -220,6 +268,7 @@ function App() {
             {(
               [
                 ["briefing", "Briefing"],
+                ["collect", "Collect"],
                 ["sources", "Sources"],
                 ["priorities", "Priority signals"],
                 ["about", "How it works"],
@@ -317,6 +366,13 @@ function App() {
           onChange={(sources) =>
             setWorkspace((current) => ({ ...current, sources }))
           }
+          onNotify={notify}
+        />
+      ) : null}
+      {view === "collect" ? (
+        <CollectionView
+          archive={archive}
+          sources={workspace.sources}
           onNotify={notify}
         />
       ) : null}

@@ -19,11 +19,25 @@ Milestone 1 delivers:
 - A discussion list with Markdown and CSV export.
 - Source and priority-signal management screens.
 - Dynamic customer, subsidiary, and priority filters generated from active priority signals.
+- A reusable archive imported from both predecessor projects.
+- A dedicated Collection screen for selecting people, sources, topics, and exact inclusive date windows.
+- Archive-only reuse without a new network collection.
+- Date-window RSS/Atom collection through GitHub Actions.
+- Explicit browser-assisted queues for LinkedIn and manual queues for reference sources.
 - Versioned browser-local persistence plus workspace import and export.
 - Light and dark themes, keyboard search, reduced-motion support, print styling, and responsive layouts.
 - Automated test, build, audit, and GitHub Pages deployment.
 
-The initial catalog is a representative normalized research snapshot. Scheduled collection, optional LLM enrichment, and the LinkedIn capture helper are defined in the implementation plan and follow in the next milestones.
+The briefing opens with a focused current set for speed and exposes the imported research through its catalog-scope filter. Scheduled collection, optional LLM enrichment, and the LinkedIn capture helper remain in the implementation plan.
+
+The imported archive currently contains:
+
+- 208 FabCon briefing announcements with rich summaries and citations.
+- 51 indexed Fabric Digest signals.
+- 259 normalized reusable signals after migration.
+- 41 normalized source definitions.
+- 20 curated LinkedIn people.
+- Five prior run records and the existing deduplication fingerprints.
 
 ## Project documents
 
@@ -66,6 +80,39 @@ npm run check
 
 The production site is generated in `dist/`.
 
+## Collection runs
+
+Open **Collect** in the application to:
+
+1. Choose an inclusive start and end date.
+2. Enter optional topics or technologies.
+3. Select automatic feeds, LinkedIn people, and reference sources.
+4. Reuse matching archive candidates without collecting again.
+5. Prepare a collection request and copy the exact GitHub CLI command.
+6. Open the GitHub Actions workflow and download the resulting JSON artifact.
+
+Run the collector locally:
+
+```powershell
+npm run collect -- `
+  --from 2026-10-01 `
+  --to 2026-10-15 `
+  --sources fabric-updates-rss,pbi-updates-rss `
+  --topics "agents,governance,sql"
+```
+
+Regenerate the reusable archive from the two sibling projects:
+
+```powershell
+npm run import:legacy
+```
+
+Collection modes:
+
+- **Automatic** — RSS and Atom feeds collected in the exact date window.
+- **Browser-assisted** — LinkedIn post and author-comment capture from Igor's signed-in browser.
+- **Reference** — retained for research and queued until a dedicated collector exists.
+
 ## Repository layout
 
 | Path | Purpose |
@@ -73,10 +120,17 @@ The production site is generated in `dist/`.
 | `src/components/BriefingView.tsx` | Search, filters, hierarchy, cards, and discussion list |
 | `src/components/SourcesView.tsx` | Source-management experience |
 | `src/components/GuidanceView.tsx` | Customer priority-signal experience |
+| `src/components/CollectionView.tsx` | Date-window, source, person, topic, archive-reuse, and run-preparation experience |
 | `src/components/AboutView.tsx` | Method, architecture, and delivery roadmap |
 | `src/data/seed.ts` | Starter sources, priority signals, and normalized news |
 | `src/lib/signals.ts` | Pure filtering, sorting, grouping, and export logic |
 | `src/lib/workspace.ts` | Versioned local persistence and validated import |
+| `src/lib/archive.ts` | Runtime archive loading and schema validation |
+| `scripts/import-legacy.mjs` | Repeatable migration from both predecessor projects |
+| `scripts/collect.mjs` | Date-window RSS/Atom collector and assisted-source queue |
+| `public/data/archive.json` | Normalized reusable intelligence archive |
+| `config/collection-sources.json` | Source capabilities used by collection runs |
+| `.github/workflows/collect.yml` | Manual date-window collection workflow |
 | `docs/IMPLEMENTATION_PLAN.md` | Product, architecture, safety, and delivery plan |
 | `docs/CHECKPOINT.md` | Current execution checkpoint |
 | `.github/workflows/pages.yml` | Validation and GitHub Pages deployment |

@@ -15,6 +15,7 @@ export interface Source {
   notes: string;
   health: SourceHealth;
   lastChecked?: string;
+  collectionMode?: "automatic" | "browser-assisted" | "reference";
 }
 
 export type GuidancePriority = "critical" | "high" | "normal" | "watch";
@@ -91,12 +92,51 @@ export interface Workspace {
   pinnedSignalIds: string[];
 }
 
+export interface ArchiveRun {
+  run: number;
+  date: string;
+  mode: string;
+  window: {
+    from: string;
+    to: string;
+  };
+  sources: string[];
+  items?: number;
+  intent: string;
+  output?: string;
+  notes?: string;
+}
+
+export interface ArchiveBundle {
+  schemaVersion: 1;
+  generatedAt: string;
+  coverage: {
+    archiveStarts: string;
+    digestGenerated: string;
+    fabconResearchCutoff: string;
+    lastPullDate: string;
+  };
+  counts: {
+    fabconAnnouncements: number;
+    digestIndexItems: number;
+    normalizedSignals: number;
+    sources: number;
+    linkedInPeople: number;
+    priorRuns: number;
+  };
+  sources: Source[];
+  signals: Signal[];
+  priorRuns: ArchiveRun[];
+  fingerprints: Record<string, unknown>;
+}
+
 export interface SignalFilters {
   query: string;
   platform: string;
   section: string;
   audience: string;
   prioritySignal: string;
+  archiveScope: "current" | "all" | "archive";
   status: string;
   evidence: string;
   protectedOnly: boolean;
@@ -105,4 +145,9 @@ export interface SignalFilters {
 
 export type SignalSort = "relevance" | "newest" | "title";
 
-export type AppView = "briefing" | "sources" | "priorities" | "about";
+export type AppView =
+  | "briefing"
+  | "collect"
+  | "sources"
+  | "priorities"
+  | "about";

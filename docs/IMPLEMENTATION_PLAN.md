@@ -136,7 +136,7 @@ This preserves the useful behavior proven by `fabric-digest` without storing cre
 
 ### Collection pipeline
 
-Phase 1 ships the customer experience and configuration surfaces with a representative normalized dataset.
+Phase 1 ships the customer experience and configuration surfaces with a normalized archive imported from both predecessor projects.
 
 Phase 2 adds:
 
@@ -175,10 +175,15 @@ Exit criteria:
 
 ### Milestone 2 - Automated public-source ingestion
 
-- [ ] Add RSS/Atom collectors.
-- [ ] Add deduplication, source health, and state transitions.
+- [x] Add reusable migration for the FabCon briefing, Fabric Digest index, source registry, roster, prior runs, and fingerprints.
+- [x] Add exact date-window RSS/Atom collection.
+- [x] Add canonical URL and normalized-title deduplication against the imported archive.
+- [x] Add a dedicated Collection screen for who, what, sources, topics, and dates.
+- [x] Add archive-only reuse and a downloadable collection request.
+- [x] Add a manual GitHub Actions workflow with explicit failure artifacts.
+- [ ] Add durable source-health history and state transitions to published signals.
 - [ ] Add optional LLM summaries and priority matching.
-- [ ] Add scheduled refresh workflow with explicit failure reporting.
+- [ ] Add a scheduled refresh policy after Igor selects the desired cadence.
 - [ ] Add a review gate before customer-safe publication.
 
 Exit criteria:

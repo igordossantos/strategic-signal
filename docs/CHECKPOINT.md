@@ -79,6 +79,49 @@ Date: 2026-10-15
 - Deployment result: successful
 - Production smoke test: personalized title and hero rendered, Priority signals navigation and dynamic customer selector loaded, both collapse controls verified on the left, no horizontal overflow
 
+## Checkpoint 03 - Archive reuse and collection runs
+
+Date: 2026-10-15
+
+### Reused without re-scraping
+
+- Imported 208 rich announcements and 13 cited sources from the FabCon briefing.
+- Imported 51 indexed signals, five prior runs, source configuration, and deduplication fingerprints from Fabric Digest.
+- Imported all 20 tracked LinkedIn people and their coverage tags.
+- Produced 259 normalized reusable signals and 41 normalized source definitions.
+- Added a repeatable `scripts/import-legacy.mjs` migration so the archive can be regenerated.
+
+### Collection runner
+
+- Added inclusive `from` and `to` date validation.
+- Added source and person selection by stable source id.
+- Added optional topic filtering.
+- Added RSS and Atom parsing for automatic public feeds.
+- Added canonical URL and normalized-title matching against the archive.
+- Added explicit browser-assisted queues for LinkedIn.
+- Added explicit manual queues for reference sources.
+- Added structured per-source errors and result summaries.
+- Added a GitHub Actions workflow that returns the run JSON as a downloadable artifact.
+- Tested the exact October 1–15, 2026 window against both official feeds: two sources completed, 18 items returned, zero source failures.
+
+### Collection screen
+
+- Added a dedicated **Collect** navigation item.
+- Added date presets and custom inclusive dates.
+- Added source, person, technology, collection-mode, and topic controls.
+- Added an archive-only download that performs no new collection.
+- Added prepared-run history in browser-local storage.
+- Added generated GitHub CLI commands and direct access to the workflow.
+- Added automatic, browser-assisted, and reference coverage labels.
+
+### Performance and validation
+
+- The briefing defaults to 11 current cards for speed.
+- Imported archive content is available through Current + archive or Archive-only catalog scopes.
+- Nineteen automated tests pass.
+- Lint, TypeScript, production build, dependency audit, archive integrity, source-reference integrity, and invalid-date handling pass.
+- Mobile Collection view at 390 pixels has no horizontal overflow.
+
 ### Known boundaries
 
 - GitHub Pages cannot directly read authenticated LinkedIn content.

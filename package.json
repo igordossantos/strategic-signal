@@ -1,7 +1,7 @@
 {
   "name": "strategic-signal",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Customer-ready technology intelligence for Data, Analytics, and AI conversations.",
   "type": "module",
   "scripts": {
@@ -9,7 +9,9 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "vitest run && node --test tests/site.node.mjs",
+    "import:legacy": "node scripts/import-legacy.mjs",
+    "collect": "node scripts/collect.mjs",
+    "test": "vitest run && node --test tests/site.node.mjs tests/archive.node.mjs",
     "check": "npm run lint && npm run test && npm run build"
   },
   "dependencies": {
@@ -17,6 +19,7 @@
     "@radix-ui/react-slot": "^1.5.0-rc.1791418933720",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "fast-xml-parser": "^5.11.2",
     "lucide-react": "^1.53.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

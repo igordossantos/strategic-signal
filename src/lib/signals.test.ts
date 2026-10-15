@@ -45,6 +45,26 @@ describe("signal filtering", () => {
     ).toBe(true);
   });
 
+  it("keeps imported archive items opt-in for a fast current briefing", () => {
+    const archived = {
+      ...seedSignals[0],
+      id: "archived-copy",
+      tags: [...seedSignals[0].tags, "imported archive"],
+    };
+
+    expect(
+      filterSignals([...seedSignals, archived], emptyFilters).some(
+        (signal) => signal.id === archived.id,
+      ),
+    ).toBe(false);
+    expect(
+      filterSignals([...seedSignals, archived], {
+        ...emptyFilters,
+        archiveScope: "archive",
+      }).map((signal) => signal.id),
+    ).toEqual(["archived-copy"]);
+  });
+
   it("sorts by the selected audience's relevance score", () => {
     const sorted = sortSignals(
       seedSignals.filter((signal) =>

@@ -42,10 +42,17 @@ test("the complete Clawpilot theme and required typography are present", () => {
 test("the key product surfaces are linked from the application shell", () => {
   const app = read("src/App.tsx");
 
-  for (const route of ["briefing", "sources", "priorities", "about"]) {
+  for (const route of [
+    "briefing",
+    "collect",
+    "sources",
+    "priorities",
+    "about",
+  ]) {
     assert.match(app, new RegExp(`"${route}"`));
   }
   assert.match(app, /IgorMark/);
+  assert.match(app, /loadArchive/);
   assert.match(app, /parseWorkspace/);
   assert.match(app, /saveWorkspace/);
   assert.match(app, /exportWorkspace/);
@@ -57,6 +64,8 @@ test("the repository contains no obvious credential literals", () => {
     "src/data/seed.ts",
     "src/lib/workspace.ts",
     ".github/workflows/pages.yml",
+    ".github/workflows/collect.yml",
+    "scripts/collect.mjs",
   ];
   const secretPatterns = [
     /gho_[A-Za-z0-9]{20,}/,

@@ -447,6 +447,22 @@ export function BriefingView({
               <kbd>/</kbd>
             </label>
             <label className="select-field">
+              <span>Catalog scope</span>
+              <select
+                value={filters.archiveScope}
+                onChange={(event) =>
+                  setFilter(
+                    "archiveScope",
+                    event.target.value as SignalFilters["archiveScope"],
+                  )
+                }
+              >
+                <option value="current">Current briefing</option>
+                <option value="all">Current + imported archive</option>
+                <option value="archive">Imported archive only</option>
+              </select>
+            </label>
+            <label className="select-field">
               <span>Platform</span>
               <select
                 value={filters.platform}

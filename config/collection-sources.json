@@ -1,0 +1,662 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-15T16:27:25.878Z",
+  "sources": [
+    {
+      "id": "foundry-docs",
+      "name": "Microsoft Foundry documentation",
+      "url": "https://learn.microsoft.com/en-us/azure/ai-foundry",
+      "kind": "documentation",
+      "collectionMode": "reference",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Foundry"
+      ],
+      "tags": [
+        "foundry",
+        "agents",
+        "models"
+      ]
+    },
+    {
+      "id": "databricks-release-notes",
+      "name": "Azure Databricks release notes",
+      "url": "https://learn.microsoft.com/en-us/azure/databricks/release-notes",
+      "kind": "documentation",
+      "collectionMode": "reference",
+      "enabled": true,
+      "platforms": [
+        "Azure Databricks"
+      ],
+      "tags": [
+        "databricks",
+        "release",
+        "lakehouse"
+      ]
+    },
+    {
+      "id": "azure-sql-blog",
+      "name": "Azure SQL Blog",
+      "url": "https://techcommunity.microsoft.com/category/azuresql/blog/azuresqlblog",
+      "kind": "blog",
+      "collectionMode": "reference",
+      "enabled": true,
+      "platforms": [
+        "Microsoft SQL"
+      ],
+      "tags": [
+        "sql",
+        "database",
+        "release"
+      ]
+    },
+    {
+      "id": "fabric-updates-rss",
+      "name": "Fabric Updates Blog",
+      "url": "https://community.fabric.microsoft.com/t5/s/yrjkf47658/rss/boardmessages?board.id=fbc_fabricupdatesblogs",
+      "kind": "rss",
+      "collectionMode": "automatic",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "fabric"
+      ]
+    },
+    {
+      "id": "pbi-updates-rss",
+      "name": "Power BI Updates Blog",
+      "url": "https://community.fabric.microsoft.com/t5/s/yrjkf47658/rss/boardmessages?board.id=fbc_pbiupdatesblog",
+      "kind": "rss",
+      "collectionMode": "automatic",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "fabric",
+        "power bi"
+      ]
+    },
+    {
+      "id": "fabric-blog",
+      "name": "Microsoft Fabric Blog (corporate)",
+      "url": "https://www.microsoft.com/en-us/microsoft-fabric/blog",
+      "kind": "blog",
+      "collectionMode": "reference",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "fabric"
+      ]
+    },
+    {
+      "id": "james-serra",
+      "name": "James Serra",
+      "url": "https://www.jamesserra.com",
+      "kind": "blog",
+      "collectionMode": "reference",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "fabric",
+        "architecture"
+      ]
+    },
+    {
+      "id": "miles-cole",
+      "name": "Miles Cole",
+      "url": "https://milescole.dev",
+      "kind": "blog",
+      "collectionMode": "reference",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "fabric"
+      ]
+    },
+    {
+      "id": "linkedin-jackrowbotham",
+      "name": "Jack Rowbotham on LinkedIn",
+      "url": "https://www.linkedin.com/in/jackrowbotham",
+      "kind": "linkedin",
+      "collectionMode": "browser-assisted",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "linkedin",
+        "strategy"
+      ]
+    },
+    {
+      "id": "linkedin-charleslamanna",
+      "name": "Charles LaManna on LinkedIn",
+      "url": "https://www.linkedin.com/in/charleslamanna",
+      "kind": "linkedin",
+      "collectionMode": "browser-assisted",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "linkedin",
+        "ai",
+        "strategy",
+        "agents"
+      ]
+    },
+    {
+      "id": "linkedin-miki-tsusaka-88546",
+      "name": "Miki Tsusaka on LinkedIn",
+      "url": "https://www.linkedin.com/in/miki-tsusaka-88546",
+      "kind": "linkedin",
+      "collectionMode": "browser-assisted",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "linkedin",
+        "strategy",
+        "org-level"
+      ]
+    },
+    {
+      "id": "linkedin-mustafa-suleyman",
+      "name": "Mustafa Suleyman on LinkedIn",
+      "url": "https://www.linkedin.com/in/mustafa-suleyman",
+      "kind": "linkedin",
+      "collectionMode": "browser-assisted",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "linkedin",
+        "ai",
+        "strategy",
+        "org-level"
+      ]
+    },
+    {
+      "id": "linkedin-satyanadella",
+      "name": "Satya Nadella on LinkedIn",
+      "url": "https://www.linkedin.com/in/satyanadella",
+      "kind": "linkedin",
+      "collectionMode": "browser-assisted",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "linkedin",
+        "strategy",
+        "org-level",
+        "ai"
+      ]
+    },
+    {
+      "id": "linkedin-kimmanis",
+      "name": "Kim Manis on LinkedIn",
+      "url": "https://www.linkedin.com/in/kimmanis",
+      "kind": "linkedin",
+      "collectionMode": "browser-assisted",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "linkedin",
+        "platform",
+        "admin",
+        "stories",
+        "monthly-roundup"
+      ]
+    },
+    {
+      "id": "linkedin-arunulag",
+      "name": "Arun Ulag on LinkedIn",
+      "url": "https://www.linkedin.com/in/arunulag",
+      "kind": "linkedin",
+      "collectionMode": "browser-assisted",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "linkedin",
+        "strategy",
+        "org-level"
+      ]
+    },
+    {
+      "id": "linkedin-bogdanc",
+      "name": "Bogdan Crivat on LinkedIn",
+      "url": "https://www.linkedin.com/in/bogdanc",
+      "kind": "linkedin",
+      "collectionMode": "browser-assisted",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "linkedin",
+        "warehouse",
+        "engineering",
+        "science",
+        "semantic-model",
+        "fabric-iq"
+      ]
+    },
+    {
+      "id": "linkedin-yitzhak-kesselman",
+      "name": "Yitzhak Kesselman on LinkedIn",
+      "url": "https://www.linkedin.com/in/yitzhak-kesselman",
+      "kind": "linkedin",
+      "collectionMode": "browser-assisted",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "linkedin",
+        "strategy",
+        "rti",
+        "powerbi"
+      ]
+    },
+    {
+      "id": "linkedin-thisissanthoshr",
+      "name": "Santhosh Kumar Ravindran on LinkedIn",
+      "url": "https://www.linkedin.com/in/thisissanthoshr",
+      "kind": "linkedin",
+      "collectionMode": "browser-assisted",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "linkedin",
+        "engineering",
+        "spark",
+        "compute",
+        "admin"
+      ]
+    },
+    {
+      "id": "linkedin-joao-salvadoo",
+      "name": "Joao Salvado on LinkedIn",
+      "url": "https://www.linkedin.com/in/joao-salvadoo",
+      "kind": "linkedin",
+      "collectionMode": "browser-assisted",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "linkedin",
+        "ai",
+        "fabric-iq",
+        "engineering",
+        "agents"
+      ]
+    },
+    {
+      "id": "linkedin-nelliegustafsson",
+      "name": "Nellie Gustafsson on LinkedIn",
+      "url": "https://www.linkedin.com/in/nelliegustafsson",
+      "kind": "linkedin",
+      "collectionMode": "browser-assisted",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "linkedin",
+        "science",
+        "ai",
+        "fabric-iq"
+      ]
+    },
+    {
+      "id": "linkedin-robece",
+      "name": "Roberto Cervantes on LinkedIn",
+      "url": "https://www.linkedin.com/in/robece",
+      "kind": "linkedin",
+      "collectionMode": "browser-assisted",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "linkedin",
+        "rti",
+        "activator",
+        "eventstream"
+      ]
+    },
+    {
+      "id": "linkedin-mileswcole",
+      "name": "Miles Cole on LinkedIn",
+      "url": "https://www.linkedin.com/in/mileswcole",
+      "kind": "linkedin",
+      "collectionMode": "browser-assisted",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "linkedin",
+        "engineering",
+        "spark",
+        "lakehouse"
+      ]
+    },
+    {
+      "id": "linkedin-zoedouglas-data",
+      "name": "Zoe Douglas on LinkedIn",
+      "url": "https://www.linkedin.com/in/zoedouglas-data",
+      "kind": "linkedin",
+      "collectionMode": "browser-assisted",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "linkedin",
+        "powerbi"
+      ]
+    },
+    {
+      "id": "linkedin-aajmerrill",
+      "name": "Aaron Merrill on LinkedIn",
+      "url": "https://www.linkedin.com/in/aajmerrill",
+      "kind": "linkedin",
+      "collectionMode": "browser-assisted",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "linkedin",
+        "platform",
+        "onelake",
+        "security"
+      ]
+    },
+    {
+      "id": "linkedin-arshadali-dev",
+      "name": "Arshad Ali on LinkedIn",
+      "url": "https://www.linkedin.com/in/arshadali-dev",
+      "kind": "linkedin",
+      "collectionMode": "browser-assisted",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "linkedin",
+        "engineering",
+        "spark",
+        "runtime"
+      ]
+    },
+    {
+      "id": "linkedin-rezarad",
+      "name": "Reza Rad on LinkedIn",
+      "url": "https://www.linkedin.com/in/rezarad",
+      "kind": "linkedin",
+      "collectionMode": "browser-assisted",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "linkedin",
+        "powerbi",
+        "fabric-apps",
+        "rti",
+        "interviews",
+        "education"
+      ]
+    },
+    {
+      "id": "linkedin-alexmpowers",
+      "name": "Alex Powers on LinkedIn",
+      "url": "https://www.linkedin.com/in/alexmpowers",
+      "kind": "linkedin",
+      "collectionMode": "browser-assisted",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "linkedin",
+        "community",
+        "powerbi",
+        "learning"
+      ]
+    },
+    {
+      "id": "linkedin-tedvilutis",
+      "name": "Ted Vilutis on LinkedIn",
+      "url": "https://www.linkedin.com/in/tedvilutis",
+      "kind": "linkedin",
+      "collectionMode": "browser-assisted",
+      "enabled": true,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "linkedin",
+        "lakehouse",
+        "engineering",
+        "security"
+      ]
+    },
+    {
+      "id": "archive-fabcon-s01",
+      "name": "FabCon and SQLCon 2026 in Barcelona: Building the data foundation for Microsoft Copilot and agents",
+      "url": "https://azure.microsoft.com/en-us/blog/fabcon-and-sqlcon-2026-in-barcelona-building-the-data-foundation-for-microsoft-copilot-and-agents",
+      "kind": "blog",
+      "collectionMode": "reference",
+      "enabled": false,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "fabcon 2026",
+        "archive"
+      ]
+    },
+    {
+      "id": "archive-fabcon-s02",
+      "name": "Bringing governed analytics into the flow of work: Fabric Analytics at FabCon Europe 2026",
+      "url": "https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/bringing-governed-analytics-into-the-flow-of-work-fabric-analytics-at-fabcon-eur/5368918",
+      "kind": "blog",
+      "collectionMode": "reference",
+      "enabled": false,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "fabcon 2026",
+        "archive"
+      ]
+    },
+    {
+      "id": "archive-fabcon-s03",
+      "name": "Power BI’s next chapter: The evolution of business intelligence",
+      "url": "https://community.fabric.microsoft.com/blog/fbc_pbiupdatesblog/power-bi%E2%80%99s-next-chapter-the-evolution-of-business-intelligence/5369131",
+      "kind": "blog",
+      "collectionMode": "reference",
+      "enabled": false,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "fabcon 2026",
+        "archive"
+      ]
+    },
+    {
+      "id": "archive-fabcon-s04",
+      "name": "From prompt to production: What’s new in Fabric Apps",
+      "url": "https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/from-prompt-to-production-whats-new-in-fabric-apps/5369134",
+      "kind": "blog",
+      "collectionMode": "reference",
+      "enabled": false,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "fabcon 2026",
+        "archive"
+      ]
+    },
+    {
+      "id": "archive-fabcon-s05",
+      "name": "FabCon and SQLCon Barcelona 2026: What’s new in Microsoft OneLake and its rapidly growing ecosystem",
+      "url": "https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabcon-and-sqlcon-barcelona-2026-what%E2%80%99s-new-in-microsoft-onelake-and-its-rapidly/5369146",
+      "kind": "blog",
+      "collectionMode": "reference",
+      "enabled": false,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "fabcon 2026",
+        "archive"
+      ]
+    },
+    {
+      "id": "archive-fabcon-s06",
+      "name": "Trusted AI starts with Microsoft Fabric, Real-Time Intelligence, and IQ",
+      "url": "https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/trusted-ai-starts-with-microsoft-fabric-real-time-intelligence-and-iq/5369528",
+      "kind": "blog",
+      "collectionMode": "reference",
+      "enabled": false,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "fabcon 2026",
+        "archive"
+      ]
+    },
+    {
+      "id": "archive-fabcon-s07",
+      "name": "Build, deploy, and govern Microsoft Fabric at scale",
+      "url": "https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/build-deploy-and-govern-microsoft-fabric-at-scale/5369145",
+      "kind": "blog",
+      "collectionMode": "reference",
+      "enabled": false,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "fabcon 2026",
+        "archive"
+      ]
+    },
+    {
+      "id": "archive-fabcon-s08",
+      "name": "SQLCon Barcelona 2026: Advancing SQL with greater control, scale, and intelligence",
+      "url": "https://www.microsoft.com/en-us/sql-server/blog/2026/09/28/sqlcon-barcelona-2026-advancing-sql-with-greater-control-scale-and-intelligence",
+      "kind": "blog",
+      "collectionMode": "reference",
+      "enabled": false,
+      "platforms": [
+        "Microsoft SQL"
+      ],
+      "tags": [
+        "fabcon 2026",
+        "archive"
+      ]
+    },
+    {
+      "id": "archive-fabcon-s09",
+      "name": "SQL Server on Azure Local is now generally available",
+      "url": "https://www.microsoft.com/en-us/sql-server/blog/2026/09/28/sql-server-on-azure-local-is-now-generally-available",
+      "kind": "blog",
+      "collectionMode": "reference",
+      "enabled": false,
+      "platforms": [
+        "Microsoft SQL"
+      ],
+      "tags": [
+        "fabcon 2026",
+        "archive"
+      ]
+    },
+    {
+      "id": "archive-fabcon-s10",
+      "name": "Fabric September 2026 Feature Summary",
+      "url": "https://community.fabric.microsoft.com/blog/fbc_fabricupdatesblogs/fabric-september-2026-feature-summary/5325825",
+      "kind": "blog",
+      "collectionMode": "reference",
+      "enabled": false,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "fabcon 2026",
+        "archive"
+      ]
+    },
+    {
+      "id": "archive-fabcon-s11",
+      "name": "Power BI September 2026 Feature Summary",
+      "url": "https://community.fabric.microsoft.com/blog/fbc_pbiupdatesblog/power-bi-september-2026-feature-summary/5325831",
+      "kind": "blog",
+      "collectionMode": "reference",
+      "enabled": false,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "fabcon 2026",
+        "archive"
+      ]
+    },
+    {
+      "id": "archive-fabcon-s12",
+      "name": "What’s new in Microsoft Fabric?",
+      "url": "https://learn.microsoft.com/en-us/fabric/get-started/whats-new",
+      "kind": "documentation",
+      "collectionMode": "reference",
+      "enabled": false,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "fabcon 2026",
+        "archive"
+      ]
+    },
+    {
+      "id": "archive-fabcon-s13",
+      "name": "Hyperscale service tier – Azure SQL Database",
+      "url": "https://learn.microsoft.com/en-us/azure/azure-sql/database/service-tier-hyperscale",
+      "kind": "documentation",
+      "collectionMode": "reference",
+      "enabled": false,
+      "platforms": [
+        "Microsoft Fabric"
+      ],
+      "tags": [
+        "fabcon 2026",
+        "archive"
+      ]
+    }
+  ]
+}

@@ -12,6 +12,7 @@ export const emptyFilters: SignalFilters = {
   section: "",
   audience: "",
   prioritySignal: "",
+  archiveScope: "current",
   status: "",
   evidence: "",
   protectedOnly: false,
@@ -67,6 +68,9 @@ export function filterSignals(
   const tokens = normalize(filters.query).split(/\s+/).filter(Boolean);
 
   return signals.filter((signal) => {
+    const imported = signal.tags.includes("imported archive");
+    if (filters.archiveScope === "current" && imported) return false;
+    if (filters.archiveScope === "archive" && !imported) return false;
     if (filters.platform && signal.platform !== filters.platform) return false;
     if (filters.section && signal.section !== filters.section) return false;
     if (
