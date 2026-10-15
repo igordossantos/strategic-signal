@@ -227,6 +227,13 @@ Date: 2026-10-15
 - Twenty-three automated tests pass.
 - Lint, TypeScript, production build, source override validation, workspace migration, and responsive layout pass.
 
+### Deployment record
+
+- Release: `1.5.0`
+- Release commit: `eb3a8e0cf1b373c51b5eb41262c6e1f30ef8b934`
+- GitHub Pages run: `38778620677`
+- Production smoke test: 41 source rows, Select all selected all 41, Everything was the default with no topic input, 41 edit controls and 41 delete controls rendered, and no horizontal overflow was present
+
 ### Known boundaries
 
 - GitHub Pages cannot directly read authenticated LinkedIn content.
