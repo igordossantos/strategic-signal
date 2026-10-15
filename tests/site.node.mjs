@@ -46,6 +46,7 @@ test("the key product surfaces are linked from the application shell", () => {
   for (const route of [
     "briefing",
     "collect",
+    "digest",
     "sources",
     "priorities",
     "about",
@@ -70,7 +71,9 @@ test("the repository contains no obvious credential literals", () => {
     "src/lib/githubRuns.ts",
     ".github/workflows/pages.yml",
     ".github/workflows/collect.yml",
+    ".github/workflows/digest.yml",
     "scripts/collect.mjs",
+    "scripts/build-digest.mjs",
   ];
   const secretPatterns = [
     /gho_[A-Za-z0-9]{20,}/,

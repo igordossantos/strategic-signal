@@ -57,6 +57,41 @@ function isGuidance(value: unknown): value is Guidance {
   );
 }
 
+function isStoredSignal(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  return (
+    typeof value.id === "string" &&
+    typeof value.title === "string" &&
+    typeof value.platform === "string" &&
+    typeof value.section === "string" &&
+    typeof value.summary === "string" &&
+    Array.isArray(value.details) &&
+    Array.isArray(value.sourceIds) &&
+    Array.isArray(value.links) &&
+    Array.isArray(value.tags) &&
+    Array.isArray(value.relevance) &&
+    Array.isArray(value.protected) &&
+    typeof value.customerSafe === "boolean"
+  );
+}
+
+function isDigestDocument(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  return (
+    value.schemaVersion === 1 &&
+    typeof value.id === "string" &&
+    typeof value.title === "string" &&
+    typeof value.generatedAt === "string" &&
+    typeof value.executiveSummary === "string" &&
+    Array.isArray(value.keyThemes) &&
+    Array.isArray(value.mustKnow) &&
+    Array.isArray(value.customerConnections) &&
+    Array.isArray(value.questions) &&
+    Array.isArray(value.readingOrder) &&
+    Array.isArray(value.caveats)
+  );
+}
+
 export function validateWorkspace(value: unknown): Workspace {
   if (!isRecord(value) || value.version !== 1) {
     throw new Error("The workspace file has an unsupported or missing version.");
@@ -81,6 +116,21 @@ export function validateWorkspace(value: unknown): Workspace {
   ) {
     throw new Error("The workspace contains invalid personal hashtags.");
   }
+  const collectedSignals = value.collectedSignals ?? [];
+  if (
+    !Array.isArray(collectedSignals) ||
+    !collectedSignals.every(isStoredSignal)
+  ) {
+    throw new Error("The workspace contains invalid collected signals.");
+  }
+  const digestSelectionIds = value.digestSelectionIds ?? [];
+  if (!isStringArray(digestSelectionIds)) {
+    throw new Error("The workspace contains an invalid digest selection.");
+  }
+  const digests = value.digests ?? [];
+  if (!Array.isArray(digests) || !digests.every(isDigestDocument)) {
+    throw new Error("The workspace contains an invalid digest library.");
+  }
   const guidance = (value.guidance as Guidance[]).map((item) => ({
     ...item,
     lensHashtag:
@@ -94,6 +144,9 @@ export function validateWorkspace(value: unknown): Workspace {
     deletedSourceIds,
     guidance,
     itemTags,
+    collectedSignals,
+    digestSelectionIds,
+    digests,
   } as unknown as Workspace;
 }
 

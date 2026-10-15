@@ -22,28 +22,33 @@ import {
   Trash2,
 } from "lucide-react";
 import {
+  type ChangeEvent,
   type FormEvent,
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { formatDate, uniqueSorted } from "../lib/signals";
 import { downloadText } from "../lib/workspace";
+import { importCollectionResult } from "../lib/collectionImport";
 import {
   fetchCollectionRuns,
   fetchWorkflowJobs,
   type WorkflowJob,
   type WorkflowRun,
 } from "../lib/githubRuns";
-import type { ArchiveBundle, Source } from "../types";
+import type { ArchiveBundle, Signal, Source } from "../types";
 import { SourceEditorModal } from "./SourceEditorModal";
 import { Badge, Button } from "./ui";
 
 interface CollectionViewProps {
   archive: ArchiveBundle | null;
   sources: Source[];
+  centralizedSignals: Signal[];
   onSourcesChange: (sources: Source[]) => void;
+  onImportSignals: (signals: Signal[]) => void;
   onNotify: (message: string, tone?: "success" | "error") => void;
 }
 
@@ -158,7 +163,9 @@ function durationText(start: string | null, end: string): string {
 export function CollectionView({
   archive,
   sources,
+  centralizedSignals,
   onSourcesChange,
+  onImportSignals,
   onNotify,
 }: CollectionViewProps) {
   const [from, setFrom] = useState(startOfMonth);
@@ -188,6 +195,7 @@ export function CollectionView({
   const [rateLimitRemaining, setRateLimitRemaining] = useState<number | null>(
     null,
   );
+  const resultInput = useRef<HTMLInputElement>(null);
 
   const collectionSources = useMemo(() => {
     const byUrl = new Map<string, Source>();
@@ -525,6 +533,33 @@ export function CollectionView({
     );
   }
 
+  async function importRunResult(
+    event: ChangeEvent<HTMLInputElement>,
+  ): Promise<void> {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    try {
+      const result = importCollectionResult(
+        await file.text(),
+        sources,
+        [...(archive?.signals ?? []), ...centralizedSignals],
+      );
+      onImportSignals(result.signals);
+      onNotify(
+        `Centralized ${result.importedCount} new items from ${result.runId}. ${result.skippedCount} existing or invalid items and ${result.duplicateCount} reported duplicates were not imported.`,
+        "success",
+      );
+    } catch (error) {
+      onNotify(
+        error instanceof Error
+          ? error.message
+          : "Collection result import failed.",
+        "error",
+      );
+    }
+  }
+
   return (
     <main className="page-shell collection-page" id="main-content">
       <section className="page-heading collection-heading">
@@ -566,9 +601,9 @@ export function CollectionView({
           <small>Recovered from the curated roster</small>
         </div>
         <div className="metric-card">
-          <span>Prior runs</span>
-          <strong>{archive?.counts.priorRuns ?? "—"}</strong>
-          <small>Including fingerprints and windows</small>
+          <span>Centralized items</span>
+          <strong>{centralizedSignals.length}</strong>
+          <small>Imported from completed runs</small>
         </div>
       </section>
 
@@ -587,6 +622,13 @@ export function CollectionView({
             </p>
           </div>
           <div className="run-status-actions">
+            <input
+              ref={resultInput}
+              className="sr-only"
+              type="file"
+              accept="application/json,.json"
+              onChange={(event) => void importRunResult(event)}
+            />
             <span>
               {runsCheckedAt
                 ? `Checked ${formatTimestamp(runsCheckedAt)}`
@@ -595,6 +637,15 @@ export function CollectionView({
                 ? ` · ${rateLimitRemaining} API requests left`
                 : ""}
             </span>
+            <Button
+              type="button"
+              variant="secondary"
+              size="small"
+              onClick={() => resultInput.current?.click()}
+            >
+              <FileJson size={15} aria-hidden="true" />
+              Import result
+            </Button>
             <Button
               type="button"
               variant="secondary"

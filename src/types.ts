@@ -94,6 +94,59 @@ export interface Workspace {
   guidance: Guidance[];
   pinnedSignalIds: string[];
   itemTags: Record<string, string[]>;
+  collectedSignals: Signal[];
+  digestSelectionIds: string[];
+  digests: DigestDocument[];
+}
+
+export type DigestIntent = "brief" | "customer" | "learn" | "executive";
+export type DigestDepth = "concise" | "standard" | "deep";
+
+export interface DigestTheme {
+  title: string;
+  summary: string;
+  itemIds: string[];
+}
+
+export interface DigestItem {
+  title: string;
+  why: string;
+  status: string;
+  itemIds: string[];
+}
+
+export interface DigestConnection {
+  audience: string;
+  reason: string;
+  itemIds: string[];
+}
+
+export interface DigestReadingItem {
+  itemId: string;
+  reason: string;
+}
+
+export interface DigestDocument {
+  schemaVersion: 1;
+  id: string;
+  title: string;
+  generatedAt: string;
+  provider: string;
+  model: string;
+  request: {
+    intent: DigestIntent;
+    depth: DigestDepth;
+    audience: string;
+    instructions: string;
+    itemIds: string[];
+  };
+  executiveSummary: string;
+  keyThemes: DigestTheme[];
+  mustKnow: DigestItem[];
+  customerConnections: DigestConnection[];
+  questions: string[];
+  readingOrder: DigestReadingItem[];
+  caveats: string[];
 }
 
 export interface ArchiveRun {
@@ -153,6 +206,7 @@ export type SignalSort = "relevance" | "newest" | "title";
 export type AppView =
   | "briefing"
   | "collect"
+  | "digest"
   | "sources"
   | "priorities"
   | "about";

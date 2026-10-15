@@ -65,6 +65,16 @@ Constraints to address:
 - Pin items to a discussion list.
 - Copy or export a concise customer briefing.
 
+### 1.1 Digest Builder
+
+- Import completed collection results into the private browser workspace.
+- Search current, collected, and archived intelligence.
+- Select and remove items from a persistent reading queue.
+- Build an immediate structured digest without an external model.
+- Prepare an optional strong-LLM request with intent, depth, audience, and instructions.
+- Run Azure OpenAI through GitHub Actions without exposing credentials in the public site.
+- Import the structured AI result into a private browser-local digest library.
+
 ### 2. Sources
 
 - Add, edit, enable, disable, search, and remove source definitions.
@@ -200,6 +210,18 @@ Exit criteria:
 - [ ] Add optional LLM summaries and priority matching.
 - [ ] Add a scheduled refresh policy after Igor selects the desired cadence.
 - [ ] Add a review gate before customer-safe publication.
+
+### Milestone 2.1 - Digest synthesis
+
+- [x] Add validated collection-result import and local centralization.
+- [x] Add another URL and normalized-title deduplication pass during import.
+- [x] Add persistent digest selection.
+- [x] Add an immediate deterministic reading digest.
+- [x] Add Azure OpenAI digest generation with JSON-mode output.
+- [x] Add structured output validation and selected-item id enforcement.
+- [x] Add digest workflow status and request correlation.
+- [x] Add private AI digest import and browser-local library.
+- [ ] Configure Igor's chosen Azure OpenAI deployment through repository secrets.
 
 Exit criteria:
 

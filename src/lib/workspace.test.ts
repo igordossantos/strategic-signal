@@ -12,6 +12,9 @@ const workspace: Workspace = {
   itemTags: {
     "policies-in-fabric": ["customer-priority"],
   },
+  collectedSignals: [],
+  digestSelectionIds: [],
+  digests: [],
 };
 
 describe("workspace persistence", () => {
@@ -46,6 +49,9 @@ describe("workspace persistence", () => {
       guidance: [],
       pinnedSignalIds: [],
       itemTags: {},
+      collectedSignals: [],
+      digestSelectionIds: [],
+      digests: [],
     });
 
     expect(loaded.warning).toBeUndefined();
@@ -81,6 +87,9 @@ describe("workspace persistence", () => {
 
     expect(migrated.itemTags).toEqual({});
     expect(migrated.deletedSourceIds).toEqual([]);
+    expect(migrated.collectedSignals).toEqual([]);
+    expect(migrated.digestSelectionIds).toEqual([]);
+    expect(migrated.digests).toEqual([]);
     expect(migrated.guidance.every((item) => item.lensHashtag)).toBe(true);
   });
 

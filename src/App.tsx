@@ -17,6 +17,7 @@ import {
 import { AboutView } from "./components/AboutView";
 import { BriefingView } from "./components/BriefingView";
 import { CollectionView } from "./components/CollectionView";
+import { DigestView } from "./components/DigestView";
 import { GuidanceView } from "./components/GuidanceView";
 import { IgorMark } from "./components/IgorMark";
 import { SourcesView } from "./components/SourcesView";
@@ -39,6 +40,8 @@ import {
 import type {
   AppView,
   ArchiveBundle,
+  DigestDocument,
+  Signal,
   Source,
   SignalFilters,
   SignalSort,
@@ -52,6 +55,9 @@ const starterWorkspace: Workspace = {
   guidance: seedGuidance,
   pinnedSignalIds: [],
   itemTags: {},
+  collectedSignals: [],
+  digestSelectionIds: [],
+  digests: [],
 };
 
 function viewFromHash(): AppView {
@@ -59,6 +65,7 @@ function viewFromHash(): AppView {
   if (hash === "guidance") return "priorities";
   if (
     hash === "collect" ||
+    hash === "digest" ||
     hash === "sources" ||
     hash === "priorities" ||
     hash === "about"
@@ -96,9 +103,12 @@ function App() {
     const byId = new Map(
       (archive?.signals ?? []).map((signal) => [signal.id, signal]),
     );
+    for (const signal of workspace.collectedSignals) {
+      byId.set(signal.id, signal);
+    }
     for (const signal of seedSignals) byId.set(signal.id, signal);
     return [...byId.values()];
-  }, [archive]);
+  }, [archive, workspace.collectedSignals]);
   const personalizedSignals = useMemo(
     () =>
       applyPrioritySignals(
@@ -206,6 +216,7 @@ function App() {
     const pageNames: Record<AppView, string> = {
       briefing: "Strategic Signal by Igor",
       collect: "Collection Runs | Strategic Signal",
+      digest: "Digest Builder | Strategic Signal",
       sources: "Sources | Strategic Signal",
       priorities: "Priority Signals | Strategic Signal",
       about: "About | Strategic Signal",
@@ -266,6 +277,26 @@ function App() {
     });
   }
 
+  function importCollectedSignals(signals: Signal[]): void {
+    setWorkspace((current) => {
+      const byId = new Map(
+        current.collectedSignals.map((signal) => [signal.id, signal]),
+      );
+      for (const signal of signals) byId.set(signal.id, signal);
+      return { ...current, collectedSignals: [...byId.values()] };
+    });
+  }
+
+  function importDigest(digest: DigestDocument): void {
+    setWorkspace((current) => ({
+      ...current,
+      digests: [
+        digest,
+        ...current.digests.filter((item) => item.id !== digest.id),
+      ],
+    }));
+  }
+
   function exportWorkspace(): void {
     downloadText(
       `strategic-signal-workspace-${new Date().toISOString().slice(0, 10)}.json`,
@@ -318,6 +349,7 @@ function App() {
               [
                 ["briefing", "Briefing"],
                 ["collect", "Collect"],
+                ["digest", "Digest"],
                 ["sources", "Sources"],
                 ["priorities", "Priority signals"],
                 ["about", "How it works"],
@@ -422,7 +454,26 @@ function App() {
         <CollectionView
           archive={archive}
           sources={workspace.sources}
+          centralizedSignals={workspace.collectedSignals}
           onSourcesChange={updateSources}
+          onImportSignals={importCollectedSignals}
+          onNotify={notify}
+        />
+      ) : null}
+      {view === "digest" ? (
+        <DigestView
+          signals={personalizedSignals}
+          prioritySignals={workspace.guidance}
+          selectionIds={workspace.digestSelectionIds}
+          discussionIds={workspace.pinnedSignalIds}
+          digests={workspace.digests}
+          onSelectionChange={(digestSelectionIds) =>
+            setWorkspace((current) => ({
+              ...current,
+              digestSelectionIds,
+            }))
+          }
+          onImportDigest={importDigest}
           onNotify={notify}
         />
       ) : null}

@@ -33,6 +33,10 @@ Milestone 1 delivers:
 - Live GitHub Actions execution status with queued, running, succeeded, failed, and cancelled states.
 - Correlation between browser-prepared requests and remote runs through a stable request id.
 - Persistent SHA-256 duplicate detection across the archive, the current run, and prior workflow runs.
+- Validated collection-result import into the private browser workspace.
+- A Digest Builder for selecting centralized items and reading an immediate structured digest.
+- Optional Azure OpenAI synthesis with intent, depth, audience, and additional instructions.
+- Private AI digest import and browser-local digest library.
 - Archive-only reuse without a new network collection.
 - Date-window RSS/Atom collection through GitHub Actions.
 - Explicit browser-assisted queues for LinkedIn and manual queues for reference sources.
@@ -134,6 +138,42 @@ Only new items are written to the importable `items` collection. Duplicates are
 retained separately with their reason and original item reference for auditing.
 GitHub Actions restores and saves the duplicate index between workflow runs.
 
+## Digest Builder
+
+The end-to-end reading workflow is:
+
+1. Run collection and download its artifact.
+2. Use **Import result** in Collect to centralize the new items in the browser workspace.
+3. Open **Digest**.
+4. Search and select current, collected, or archived items.
+5. Read the immediate structured digest without an external model.
+6. Optionally prepare an Azure OpenAI digest for a deeper synthesis.
+7. Download `digest.json` from the workflow artifact and import it into the private digest library.
+
+AI digests support:
+
+- Internal briefing
+- Customer-ready briefing
+- Learning digest
+- Executive summary
+- Concise, standard, and deep output
+- Named customer or subsidiary audience
+- Additional instructions
+
+GitHub Models inference was retired in July 2026, so the strong-model workflow uses Azure OpenAI / Microsoft Foundry rather than the retired GitHub Models endpoint.
+
+Configure these GitHub repository secrets:
+
+- `AZURE_OPENAI_ENDPOINT`
+- `AZURE_OPENAI_API_KEY`
+- `AZURE_OPENAI_DEPLOYMENT`
+
+Optional repository variable:
+
+- `AZURE_OPENAI_API_VERSION` — defaults to `2024-10-21`
+
+The application never stores an Azure credential. AI results remain workflow artifacts until Igor deliberately imports them into his local browser workspace.
+
 Run the collector locally:
 
 ```powershell
@@ -164,17 +204,22 @@ Collection modes:
 | `src/components/SourcesView.tsx` | Source-management experience |
 | `src/components/GuidanceView.tsx` | Customer priority-signal experience |
 | `src/components/CollectionView.tsx` | Date-window, source, person, topic, archive-reuse, and run-preparation experience |
+| `src/components/DigestView.tsx` | Selection, immediate reading digest, Azure OpenAI request, run status, and private digest library |
 | `src/components/AboutView.tsx` | Method, architecture, and delivery roadmap |
 | `src/data/seed.ts` | Starter sources, priority signals, and normalized news |
 | `src/lib/signals.ts` | Pure filtering, sorting, grouping, and export logic |
 | `src/lib/workspace.ts` | Versioned local persistence and validated import |
 | `src/lib/archive.ts` | Runtime archive loading and schema validation |
+| `src/lib/collectionImport.ts` | Validated run-result centralization and local duplicate protection |
+| `src/lib/digestImport.ts` | Structured AI digest validation |
 | `scripts/import-legacy.mjs` | Repeatable migration from both predecessor projects |
 | `scripts/collect.mjs` | Date-window RSS/Atom collector and assisted-source queue |
+| `scripts/build-digest.mjs` | Grounded Azure OpenAI digest request and response validation |
 | `src/lib/githubRuns.ts` | Public GitHub Actions run and job status client |
 | `public/data/archive.json` | Normalized reusable intelligence archive |
 | `config/collection-sources.json` | Source capabilities used by collection runs |
 | `.github/workflows/collect.yml` | Manual date-window collection workflow |
+| `.github/workflows/digest.yml` | Private Azure OpenAI digest workflow |
 | `docs/IMPLEMENTATION_PLAN.md` | Product, architecture, safety, and delivery plan |
 | `docs/CHECKPOINT.md` | Current execution checkpoint |
 | `.github/workflows/pages.yml` | Validation and GitHub Pages deployment |

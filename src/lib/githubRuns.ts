@@ -58,9 +58,11 @@ async function githubFetch(path: string): Promise<Response> {
   return response;
 }
 
-export async function fetchCollectionRuns(): Promise<WorkflowRunsResult> {
+export async function fetchWorkflowRuns(
+  workflowFile: string,
+): Promise<WorkflowRunsResult> {
   const response = await githubFetch(
-    "/workflows/collect.yml/runs?event=workflow_dispatch&per_page=10",
+    `/workflows/${encodeURIComponent(workflowFile)}/runs?event=workflow_dispatch&per_page=10`,
   );
   const body = await response.json();
   return {
@@ -89,6 +91,10 @@ export async function fetchCollectionRuns(): Promise<WorkflowRunsResult> {
         ).toISOString()
       : null,
   };
+}
+
+export function fetchCollectionRuns(): Promise<WorkflowRunsResult> {
+  return fetchWorkflowRuns("collect.yml");
 }
 
 export async function fetchWorkflowJobs(

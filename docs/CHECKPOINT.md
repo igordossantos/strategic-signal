@@ -285,6 +285,51 @@ Date: 2026-10-15
 - The second duplicate references the exact original Fabric Updates item id.
 - Production status panel displayed the successful remote runs, durations, artifact availability, API check time, and remaining rate limit with no horizontal overflow.
 
+## Checkpoint 08 - Digest Builder and Azure OpenAI
+
+Date: 2026-10-15
+
+### Centralization
+
+- Added validated import for completed collection `run.json` files.
+- Added local duplicate checks against centralized ids, canonical URLs, and normalized titles.
+- Added normalized Signal creation for new collected items.
+- Added collected items to the main briefing and Digest Builder catalogs.
+- Added browser-local persistence and workspace export for centralized items.
+
+### Digest Builder
+
+- Added a dedicated Digest navigation item and screen.
+- Added Current, Collected runs, Imported archive, and Everything catalog scopes.
+- Added search and technology filtering.
+- Added a persistent reading queue with discussion-list import.
+- Added 30-item local and 15-item AI selection limits.
+- Added an immediate structured reading digest grouped by technology and section.
+- Added generally-available and protected-signal counts.
+
+### Strong-LLM option
+
+- Confirmed GitHub Models inference is retired as of July 2026.
+- Added Azure OpenAI / Microsoft Foundry chat-completions integration.
+- Added internal, customer, learning, and executive intents.
+- Added concise, standard, and deep output.
+- Added named audience and additional-instruction controls.
+- Added JSON-mode generation, required-field validation, and selected-item id enforcement.
+- Added explicit missing-secret and API failure messages.
+- Added a dry-run workflow option for request validation without model usage.
+- Added GitHub Actions status, artifact import, and a private browser-local AI digest library.
+
+### Validation completed
+
+- Imported one new item from a real collection proof artifact and confirmed persistence after reload.
+- The centralized item appeared under Collected runs and built an immediate reading digest.
+- An AI digest request was prepared with a stable request id and selected evidence JSON.
+- A structured Azure OpenAI fixture imported and rendered executive summary, themes, must-know items, customer connections, questions, and caveats.
+- Azure OpenAI dry-run request construction passes.
+- Missing Azure OpenAI configuration fails explicitly.
+- Twenty-nine automated tests pass.
+- Lint, TypeScript, production build, dependency audit, centralization, digest selection, request construction, and digest import pass.
+
 ### Known boundaries
 
 - GitHub Pages cannot directly read authenticated LinkedIn content.

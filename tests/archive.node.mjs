@@ -232,3 +232,95 @@ test("collector detects same-run and prior-run duplicates", async () => {
     }
   }
 });
+
+test("digest builder constructs a grounded Azure OpenAI request", () => {
+  const output = join(
+    tmpdir(),
+    `strategic-signal-digest-dry-run-${process.pid}.json`,
+  );
+  const selection = JSON.stringify([
+    {
+      id: "item-1",
+      title: "Grounded item",
+      summary: "Evidence supplied by a selected source.",
+      platform: "Technology",
+      section: "AI",
+      details: [],
+      status: "Generally available",
+      evidence: "confirmed",
+      nextStep: "Evaluate.",
+      hashtags: ["grounded"],
+      links: [],
+      relevance: [],
+    },
+  ]);
+  const result = spawnSync(
+    process.execPath,
+    [
+      fileURLToPath(new URL("../scripts/build-digest.mjs", import.meta.url)),
+      "--dry-run",
+      "--request-id",
+      "digest-test",
+      "--intent",
+      "customer",
+      "--depth",
+      "deep",
+      "--audience",
+      "Test audience",
+      "--selection-json",
+      selection,
+      "--output",
+      output,
+    ],
+    { encoding: "utf8" },
+  );
+
+  try {
+    assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+    const request = JSON.parse(readFileSync(output, "utf8"));
+    assert.equal(request.requestId, "digest-test");
+    assert.deepEqual(request.itemIds, ["item-1"]);
+    assert.equal(request.modelRequest.response_format.type, "json_object");
+    assert.match(
+      request.modelRequest.messages[0].content,
+      /customer-safe language/i,
+    );
+  } finally {
+    if (existsSync(output)) unlinkSync(output);
+  }
+});
+
+test("digest builder fails explicitly when Azure OpenAI is not configured", () => {
+  const selection = JSON.stringify([
+    {
+      id: "item-1",
+      title: "Grounded item",
+      summary: "Evidence supplied by a selected source.",
+    },
+  ]);
+  const result = spawnSync(
+    process.execPath,
+    [
+      fileURLToPath(new URL("../scripts/build-digest.mjs", import.meta.url)),
+      "--request-id",
+      "digest-no-config",
+      "--selection-json",
+      selection,
+    ],
+    {
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        AZURE_OPENAI_ENDPOINT: "",
+        AZURE_OPENAI_API_KEY: "",
+        AZURE_OPENAI_DEPLOYMENT: "",
+      },
+    },
+  );
+
+  assert.notEqual(result.status, 0);
+  assert.match(
+    `${result.stdout}\n${result.stderr}`,
+    /Azure OpenAI is not configured/i,
+  );
+});
