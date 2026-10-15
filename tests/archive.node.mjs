@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, unlinkSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const readJson = (path) =>
   JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), "utf8"));
@@ -66,4 +68,50 @@ test("collector rejects an inverted date window before network access", () => {
 
   assert.notEqual(result.status, 0);
   assert.match(`${result.stdout}\n${result.stderr}`, /from date must be/i);
+});
+
+test("collector accepts browser-local source overrides", () => {
+  const output = join(
+    tmpdir(),
+    `strategic-signal-source-override-${process.pid}.json`,
+  );
+  const override = [
+    {
+      id: "custom-reference",
+      name: "Custom reference",
+      url: "https://example.com/custom",
+      kind: "manual",
+      collectionMode: "reference",
+      enabled: true,
+      platforms: ["Custom Technology"],
+      tags: ["custom"],
+    },
+  ];
+  const result = spawnSync(
+    process.execPath,
+    [
+      fileURLToPath(new URL("../scripts/collect.mjs", import.meta.url)),
+      "--from",
+      "2026-10-01",
+      "--to",
+      "2026-10-15",
+      "--sources",
+      "custom-reference",
+      "--source-overrides",
+      JSON.stringify(override),
+      "--output",
+      output,
+    ],
+    { encoding: "utf8" },
+  );
+
+  try {
+    assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+    const collected = JSON.parse(readFileSync(output, "utf8"));
+    assert.equal(collected.summary.selectedSources, 1);
+    assert.equal(collected.summary.queuedSources, 1);
+    assert.equal(collected.queues[0].sourceId, "custom-reference");
+  } finally {
+    if (existsSync(output)) unlinkSync(output);
+  }
 });

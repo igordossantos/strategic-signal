@@ -12,39 +12,16 @@ import {
   Search,
   Trash2,
 } from "lucide-react";
-import { type FormEvent, useMemo, useState } from "react";
-import { createId } from "../lib/workspace";
-import type { Source, SourceKind, TrustTier } from "../types";
-import { Badge, Button, EmptyState, Modal } from "./ui";
+import { useMemo, useState } from "react";
+import type { Source } from "../types";
+import { SourceEditorModal } from "./SourceEditorModal";
+import { Badge, Button, EmptyState } from "./ui";
 
 interface SourcesViewProps {
   sources: Source[];
   onChange: (sources: Source[]) => void;
   onNotify: (message: string, tone?: "success" | "error") => void;
 }
-
-interface SourceDraft {
-  id?: string;
-  name: string;
-  url: string;
-  kind: SourceKind;
-  tier: TrustTier;
-  method: string;
-  platforms: string;
-  tags: string;
-  notes: string;
-}
-
-const emptyDraft: SourceDraft = {
-  name: "",
-  url: "",
-  kind: "rss",
-  tier: "official",
-  method: "RSS / Atom",
-  platforms: "",
-  tags: "",
-  notes: "",
-};
 
 const sourceIcons = {
   rss: Rss,
@@ -54,24 +31,6 @@ const sourceIcons = {
   manual: Pencil,
 } as const;
 
-function toDraft(source: Source): SourceDraft {
-  return {
-    id: source.id,
-    name: source.name,
-    url: source.url,
-    kind: source.kind,
-    tier: source.tier,
-    method: source.method,
-    platforms: source.platforms.join(", "),
-    tags: source.tags.join(", "),
-    notes: source.notes,
-  };
-}
-
-function parseList(value: string): string[] {
-  return [...new Set(value.split(",").map((item) => item.trim()).filter(Boolean))];
-}
-
 export function SourcesView({
   sources,
   onChange,
@@ -79,9 +38,9 @@ export function SourcesView({
 }: SourcesViewProps) {
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState("");
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [draft, setDraft] = useState<SourceDraft>(emptyDraft);
-  const [formError, setFormError] = useState("");
+  const [editorSource, setEditorSource] = useState<
+    Source | null | undefined
+  >(undefined);
 
   const shown = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase();
@@ -113,61 +72,21 @@ export function SourcesView({
   const manualCount = sources.filter((source) => source.health === "manual").length;
 
   function openCreate(): void {
-    setDraft(emptyDraft);
-    setFormError("");
-    setDialogOpen(true);
+    setEditorSource(null);
   }
 
   function openEdit(source: Source): void {
-    setDraft(toDraft(source));
-    setFormError("");
-    setDialogOpen(true);
+    setEditorSource(source);
   }
 
-  function save(event: FormEvent): void {
-    event.preventDefault();
-    if (!draft.name.trim() || !draft.url.trim()) {
-      setFormError("Name and URL are required.");
-      return;
-    }
-    try {
-      const url = new URL(draft.url);
-      if (url.protocol !== "https:") {
-        setFormError("Sources must use an HTTPS URL.");
-        return;
-      }
-    } catch {
-      setFormError("Enter a valid source URL.");
-      return;
-    }
-
-    const isLinkedIn = draft.kind === "linkedin";
-    const next: Source = {
-      id: draft.id ?? createId("source", draft.name),
-      name: draft.name.trim(),
-      url: draft.url.trim(),
-      kind: draft.kind,
-      tier: draft.tier,
-      method: isLinkedIn ? "User-triggered capture" : draft.method.trim(),
-      enabled: draft.id
-        ? (sources.find((source) => source.id === draft.id)?.enabled ?? true)
-        : true,
-      platforms: parseList(draft.platforms),
-      tags: parseList(draft.tags),
-      notes: draft.notes.trim(),
-      health: isLinkedIn ? "manual" : "healthy",
-      lastChecked: draft.id
-        ? sources.find((source) => source.id === draft.id)?.lastChecked
-        : undefined,
-    };
-
+  function saveSource(next: Source): void {
     const exists = sources.some((source) => source.id === next.id);
     onChange(
       exists
         ? sources.map((source) => (source.id === next.id ? next : source))
         : [...sources, next],
     );
-    setDialogOpen(false);
+    setEditorSource(undefined);
     onNotify(exists ? "Source updated." : "Source added.", "success");
   }
 
@@ -377,147 +296,15 @@ export function SourcesView({
         />
       )}
 
-      <Modal
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        title={draft.id ? "Edit source" : "Add a source"}
-        description="Source edits stay in this browser until you export the workspace."
-        footer={
-          <>
-            <Button type="button" variant="quiet" onClick={() => setDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="primary" form="source-form">
-              {draft.id ? "Save changes" : "Add source"}
-            </Button>
-          </>
-        }
-      >
-        <form id="source-form" className="editor-form" onSubmit={save}>
-          {formError ? <p className="form-error">{formError}</p> : null}
-          <div className="form-grid">
-            <label className="form-field form-field-wide">
-              <span>Source name</span>
-              <input
-                value={draft.name}
-                onChange={(event) =>
-                  setDraft((value) => ({ ...value, name: event.target.value }))
-                }
-                placeholder="Microsoft Fabric Blog"
-                required
-              />
-            </label>
-            <label className="form-field form-field-wide">
-              <span>HTTPS URL</span>
-              <input
-                type="url"
-                value={draft.url}
-                onChange={(event) =>
-                  setDraft((value) => ({ ...value, url: event.target.value }))
-                }
-                placeholder="https://..."
-                required
-              />
-            </label>
-            <label className="form-field">
-              <span>Source type</span>
-              <select
-                value={draft.kind}
-                onChange={(event) => {
-                  const nextKind = event.target.value as SourceKind;
-                  setDraft((value) => ({
-                    ...value,
-                    kind: nextKind,
-                    method:
-                      nextKind === "linkedin"
-                        ? "User-triggered capture"
-                        : value.method,
-                    tier:
-                      nextKind === "linkedin" && value.tier === "official"
-                        ? "social"
-                        : value.tier,
-                  }));
-                }}
-              >
-                <option value="rss">RSS / Atom</option>
-                <option value="blog">Blog</option>
-                <option value="documentation">Documentation</option>
-                <option value="linkedin">LinkedIn</option>
-                <option value="manual">Manual import</option>
-              </select>
-            </label>
-            <label className="form-field">
-              <span>Trust tier</span>
-              <select
-                value={draft.tier}
-                onChange={(event) =>
-                  setDraft((value) => ({
-                    ...value,
-                    tier: event.target.value as TrustTier,
-                  }))
-                }
-              >
-                <option value="official">Official</option>
-                <option value="expert">Expert analysis</option>
-                <option value="community">Community</option>
-                <option value="social">Social</option>
-              </select>
-            </label>
-            <label className="form-field">
-              <span>Collection method</span>
-              <input
-                value={
-                  draft.kind === "linkedin"
-                    ? "User-triggered capture"
-                    : draft.method
-                }
-                disabled={draft.kind === "linkedin"}
-                onChange={(event) =>
-                  setDraft((value) => ({
-                    ...value,
-                    method: event.target.value,
-                  }))
-                }
-              />
-            </label>
-            <label className="form-field">
-              <span>Platforms</span>
-              <input
-                value={draft.platforms}
-                onChange={(event) =>
-                  setDraft((value) => ({
-                    ...value,
-                    platforms: event.target.value,
-                  }))
-                }
-                placeholder="Microsoft Fabric, Azure AI"
-              />
-            </label>
-            <label className="form-field form-field-wide">
-              <span>Tags</span>
-              <input
-                value={draft.tags}
-                onChange={(event) =>
-                  setDraft((value) => ({ ...value, tags: event.target.value }))
-                }
-                placeholder="release, architecture, agents"
-              />
-              <small>Separate values with commas.</small>
-            </label>
-            <label className="form-field form-field-wide">
-              <span>Operational notes</span>
-              <textarea
-                rows={3}
-                value={draft.notes}
-                onChange={(event) =>
-                  setDraft((value) => ({ ...value, notes: event.target.value }))
-                }
-                placeholder="How this source should be interpreted or collected."
-              />
-            </label>
-          </div>
-        </form>
-      </Modal>
+      {editorSource !== undefined ? (
+        <SourceEditorModal
+          key={editorSource?.id ?? "new-source"}
+          source={editorSource}
+          sources={sources}
+          onSave={saveSource}
+          onClose={() => setEditorSource(undefined)}
+        />
+      ) : null}
     </main>
   );
 }

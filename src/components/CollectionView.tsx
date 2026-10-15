@@ -13,9 +13,12 @@ import {
   Globe2,
   MessageSquareText,
   MousePointerClick,
+  Pencil,
   Play,
+  Plus,
   Rss,
   Search,
+  Trash2,
 } from "lucide-react";
 import {
   type FormEvent,
@@ -26,11 +29,13 @@ import {
 import { formatDate, uniqueSorted } from "../lib/signals";
 import { downloadText } from "../lib/workspace";
 import type { ArchiveBundle, Source } from "../types";
+import { SourceEditorModal } from "./SourceEditorModal";
 import { Badge, Button } from "./ui";
 
 interface CollectionViewProps {
   archive: ArchiveBundle | null;
   sources: Source[];
+  onSourcesChange: (sources: Source[]) => void;
   onNotify: (message: string, tone?: "success" | "error") => void;
 }
 
@@ -40,7 +45,9 @@ interface CollectionRequest {
   from: string;
   to: string;
   sourceIds: string[];
+  sourceOverrides: Source[];
   topics: string[];
+  topicMode: "everything" | "topics";
   archiveCandidates: number;
   status: "prepared";
 }
@@ -108,11 +115,15 @@ function powerShellQuote(value: string): string {
 export function CollectionView({
   archive,
   sources,
+  onSourcesChange,
   onNotify,
 }: CollectionViewProps) {
   const [from, setFrom] = useState(startOfMonth);
   const [to, setTo] = useState(() => isoDate(new Date()));
   const [topics, setTopics] = useState("");
+  const [topicMode, setTopicMode] = useState<"everything" | "topics">(
+    "everything",
+  );
   const [query, setQuery] = useState("");
   const [platform, setPlatform] = useState("");
   const [mode, setMode] = useState("");
@@ -123,6 +134,9 @@ export function CollectionView({
     initialHistory.runs,
   );
   const [formError, setFormError] = useState("");
+  const [editorSource, setEditorSource] = useState<
+    Source | null | undefined
+  >(undefined);
 
   const collectionSources = useMemo(() => {
     const byUrl = new Map<string, Source>();
@@ -247,6 +261,10 @@ export function CollectionView({
     );
   }
 
+  function selectAll(): void {
+    setSelection(new Set(collectionSources.map((source) => source.id)));
+  }
+
   function clearSelection(): void {
     setSelection(new Set());
   }
@@ -281,10 +299,20 @@ export function CollectionView({
       from,
       to,
       sourceIds: [...selectedIds],
-      topics: topics
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean),
+      sourceOverrides: selectedSources.filter(
+        (source) =>
+          !archive?.sources.some(
+            (archivedSource) => archivedSource.id === source.id,
+          ),
+      ),
+      topics:
+        topicMode === "everything"
+          ? []
+          : topics
+              .split(",")
+              .map((item) => item.trim())
+              .filter(Boolean),
+      topicMode,
       archiveCandidates: archiveCandidates.length,
       status: "prepared",
     };
@@ -310,7 +338,51 @@ export function CollectionView({
       `-f to=${powerShellQuote(request.to)}`,
       `-f source_ids=${powerShellQuote(request.sourceIds.join(","))}`,
       `-f topics=${powerShellQuote(request.topics.join(","))}`,
+      ...(request.sourceOverrides.length
+        ? [
+            `-f source_overrides=${powerShellQuote(
+              JSON.stringify(request.sourceOverrides),
+            )}`,
+          ]
+        : []),
     ].join(" ");
+  }
+
+  function saveSource(next: Source): void {
+    const exists = sources.some((source) => source.id === next.id);
+    onSourcesChange(
+      exists
+        ? sources.map((source) => (source.id === next.id ? next : source))
+        : [...sources, next],
+    );
+    setEditorSource(undefined);
+    if (!exists) {
+      setSelection(new Set([...selectedIds, next.id]));
+    }
+    onNotify(exists ? "Source updated." : "Source added and selected.", "success");
+  }
+
+  function removeSource(source: Source): void {
+    if (
+      !window.confirm(
+        `Remove “${source.name}” from this browser workspace and collection selection?`,
+      )
+    ) {
+      return;
+    }
+    const sourceUrl = canonicalSourceUrl(source.url);
+    const removedIds = sources
+      .filter((item) => canonicalSourceUrl(item.url) === sourceUrl)
+      .map((item) => item.id);
+    onSourcesChange(
+      sources.filter((item) => canonicalSourceUrl(item.url) !== sourceUrl),
+    );
+    setSelection(
+      new Set(
+        [...selectedIds].filter((sourceId) => !removedIds.includes(sourceId)),
+      ),
+    );
+    onNotify("Source removed.", "success");
   }
 
   async function copyCommand(): Promise<void> {
@@ -476,18 +548,64 @@ export function CollectionView({
                 <h2 id="topic-title">Describe what to look for</h2>
               </div>
             </div>
-            <label className="form-field">
-              <span>Topics or technologies</span>
-              <input
-                value={topics}
-                onChange={(event) => setTopics(event.target.value)}
-                placeholder="agents, governance, data products, SQL, security"
-              />
-              <small>
-                Separate topics with commas. Leave empty to collect everything
-                in the selected sources and date window.
-              </small>
-            </label>
+            <div
+              className="collection-topic-mode"
+              role="radiogroup"
+              aria-label="What to collect"
+            >
+              <label>
+                <input
+                  type="radio"
+                  name="topic-mode"
+                  value="everything"
+                  checked={topicMode === "everything"}
+                  onChange={() => setTopicMode("everything")}
+                />
+                <span>
+                  <strong>Everything</strong>
+                  <small>
+                    Collect every item from the selected people and sources.
+                    Their technology coverage provides the context.
+                  </small>
+                </span>
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="topic-mode"
+                  value="topics"
+                  checked={topicMode === "topics"}
+                  onChange={() => setTopicMode("topics")}
+                />
+                <span>
+                  <strong>Specific topics</strong>
+                  <small>
+                    Apply an additional keyword filter inside the selected
+                    sources.
+                  </small>
+                </span>
+              </label>
+            </div>
+            {topicMode === "topics" ? (
+              <label className="form-field collection-topic-input">
+                <span>Topics or technologies</span>
+                <input
+                  value={topics}
+                  onChange={(event) => setTopics(event.target.value)}
+                  placeholder="agents, governance, data products, SQL, security"
+                />
+                <small>Separate topics with commas.</small>
+              </label>
+            ) : (
+              <div className="everything-mode-note">
+                <Check size={17} aria-hidden="true" />
+                <p>
+                  No content keyword filter will be sent. If a person is tagged
+                  for a specific technology, everything captured from that
+                  person retains that source context.
+                </p>
+              </div>
+            )}
           </section>
 
           <section className="collection-panel" aria-labelledby="sources-title">
@@ -539,6 +657,19 @@ export function CollectionView({
             </div>
 
             <div className="collection-select-actions">
+              <Button
+                type="button"
+                variant="primary"
+                size="small"
+                onClick={() => setEditorSource(null)}
+              >
+                <Plus size={15} aria-hidden="true" />
+                Add source
+              </Button>
+              <Button type="button" variant="quiet" size="small" onClick={selectAll}>
+                <Check size={15} aria-hidden="true" />
+                Select all
+              </Button>
               <Button type="button" variant="quiet" size="small" onClick={selectAutomatic}>
                 <Rss size={15} aria-hidden="true" />
                 Automatic feeds
@@ -563,13 +694,23 @@ export function CollectionView({
                       : source.kind === "documentation"
                         ? CodeXml
                         : Globe2;
+                const selectorId = `collect-source-${source.id}`;
+                const coverage = uniqueSorted([
+                  ...source.platforms,
+                  ...source.tags.filter((tag) => tag !== "linkedin"),
+                ]).slice(0, 4);
                 return (
-                  <label className="collection-source-row" key={source.id}>
+                  <div className="collection-source-row" key={source.id}>
                     <input
+                      id={selectorId}
                       type="checkbox"
                       checked={selectedIds.has(source.id)}
                       onChange={() => updateSelection(source.id)}
                     />
+                    <label
+                      className="collection-source-main"
+                      htmlFor={selectorId}
+                    >
                     <span className="source-check" aria-hidden="true">
                       <Check size={13} />
                     </span>
@@ -579,9 +720,10 @@ export function CollectionView({
                     <span className="collection-source-name">
                       <strong>{source.name}</strong>
                       <small>
-                        {source.platforms.join(" · ") || "General technology"}
+                        {coverage.join(" · ") || "General technology"}
                       </small>
                     </span>
+                    </label>
                     <Badge
                       tone={
                         sourceMode === "automatic"
@@ -597,7 +739,27 @@ export function CollectionView({
                           ? "Browser-assisted"
                           : "Reference"}
                     </Badge>
-                  </label>
+                    <div className="collection-source-actions">
+                      <Button
+                        type="button"
+                        variant="quiet"
+                        size="icon"
+                        aria-label={`Edit ${source.name}`}
+                        onClick={() => setEditorSource(source)}
+                      >
+                        <Pencil size={15} aria-hidden="true" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="quiet"
+                        size="icon"
+                        aria-label={`Delete ${source.name}`}
+                        onClick={() => removeSource(source)}
+                      >
+                        <Trash2 size={15} aria-hidden="true" />
+                      </Button>
+                    </div>
+                  </div>
                 );
               })}
             </div>
@@ -626,6 +788,17 @@ export function CollectionView({
               <div>
                 <dt>Reference sources</dt>
                 <dd>{sourceCounts.reference}</dd>
+              </div>
+              <div>
+                <dt>Content</dt>
+                <dd>
+                  {topicMode === "everything"
+                    ? "Everything"
+                    : `${topics
+                        .split(",")
+                        .map((item) => item.trim())
+                        .filter(Boolean).length} topics`}
+                </dd>
               </div>
               <div>
                 <dt>Archive candidates</dt>
@@ -745,9 +918,10 @@ export function CollectionView({
                     {formatDate(run.from)} → {formatDate(run.to)}
                   </strong>
                   <span>
-                    {run.sourceIds.length} sources · {run.topics.length
-                      ? run.topics.join(", ")
-                      : "all topics"}
+                    {run.sourceIds.length} sources ·{" "}
+                    {run.topicMode === "everything" || !run.topics.length
+                      ? "everything"
+                      : run.topics.join(", ")}
                   </span>
                 </div>
                 <Badge tone="neutral">{run.status}</Badge>
@@ -768,6 +942,16 @@ export function CollectionView({
           </p>
         </div>
       </div>
+
+      {editorSource !== undefined ? (
+        <SourceEditorModal
+          key={editorSource?.id ?? "new-collection-source"}
+          source={editorSource}
+          sources={sources}
+          onSave={saveSource}
+          onClose={() => setEditorSource(undefined)}
+        />
+      ) : null}
     </main>
   );
 }

@@ -67,6 +67,10 @@ export function validateWorkspace(value: unknown): Workspace {
   if (!Array.isArray(value.guidance) || !value.guidance.every(isGuidance)) {
     throw new Error("The workspace contains an invalid guidance definition.");
   }
+  const deletedSourceIds = value.deletedSourceIds ?? [];
+  if (!isStringArray(deletedSourceIds)) {
+    throw new Error("The workspace contains an invalid deleted-source list.");
+  }
   if (!isStringArray(value.pinnedSignalIds)) {
     throw new Error("The workspace contains an invalid discussion list.");
   }
@@ -85,7 +89,12 @@ export function validateWorkspace(value: unknown): Workspace {
         : storedHashtag(item.id || item.title),
     tags: item.tags.map(storedHashtag).filter(Boolean),
   }));
-  return { ...value, guidance, itemTags } as unknown as Workspace;
+  return {
+    ...value,
+    deletedSourceIds,
+    guidance,
+    itemTags,
+  } as unknown as Workspace;
 }
 
 export interface WorkspaceLoadResult {

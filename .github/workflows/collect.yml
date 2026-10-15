@@ -23,6 +23,11 @@ on:
         required: false
         default: ""
         type: string
+      source_overrides:
+        description: Optional JSON array for browser-local custom sources
+        required: false
+        default: "[]"
+        type: string
 
 permissions:
   contents: read
@@ -46,12 +51,15 @@ jobs:
       - name: Collect selected date window
         id: collect
         continue-on-error: true
+        env:
+          SOURCE_OVERRIDES: ${{ inputs.source_overrides }}
         run: >
           npm run collect --
           --from "${{ inputs.from }}"
           --to "${{ inputs.to }}"
           --sources "${{ inputs.source_ids }}"
           --topics "${{ inputs.topics }}"
+          --source-overrides "$SOURCE_OVERRIDES"
           --output "data/collection-runs/run.json"
 
       - name: Upload collection result

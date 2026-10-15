@@ -6,6 +6,7 @@ import { loadWorkspace, parseWorkspace, saveWorkspace } from "./workspace";
 const workspace: Workspace = {
   version: 1,
   sources: seedSources,
+  deletedSourceIds: [],
   guidance: seedGuidance,
   pinnedSignalIds: ["policies-in-fabric"],
   itemTags: {
@@ -41,6 +42,7 @@ describe("workspace persistence", () => {
     const loaded = loadWorkspace({
       version: 1,
       sources: [],
+      deletedSourceIds: [],
       guidance: [],
       pinnedSignalIds: [],
       itemTags: {},
@@ -78,6 +80,7 @@ describe("workspace persistence", () => {
     );
 
     expect(migrated.itemTags).toEqual({});
+    expect(migrated.deletedSourceIds).toEqual([]);
     expect(migrated.guidance.every((item) => item.lensHashtag)).toBe(true);
   });
 

@@ -39,6 +39,7 @@ import {
 import type {
   AppView,
   ArchiveBundle,
+  Source,
   SignalFilters,
   SignalSort,
   Workspace,
@@ -47,6 +48,7 @@ import type {
 const starterWorkspace: Workspace = {
   version: 1,
   sources: seedSources,
+  deletedSourceIds: [],
   guidance: seedGuidance,
   pinnedSignalIds: [],
   itemTags: {},
@@ -136,7 +138,9 @@ function App() {
             current.sources.map((source) => source.id),
           );
           const missing = loaded.sources.filter(
-            (source) => !existingIds.has(source.id),
+            (source) =>
+              !existingIds.has(source.id) &&
+              !current.deletedSourceIds.includes(source.id),
           );
           return missing.length
             ? { ...current, sources: [...current.sources, ...missing] }
@@ -243,6 +247,23 @@ function App() {
         [id]: normalized,
       },
     }));
+  }
+
+  function updateSources(sources: Source[]): void {
+    setWorkspace((current) => {
+      const nextIds = new Set(sources.map((source) => source.id));
+      const removedIds = current.sources
+        .filter((source) => !nextIds.has(source.id))
+        .map((source) => source.id);
+      return {
+        ...current,
+        sources,
+        deletedSourceIds: uniqueSorted([
+          ...current.deletedSourceIds,
+          ...removedIds,
+        ]),
+      };
+    });
   }
 
   function exportWorkspace(): void {
@@ -393,9 +414,7 @@ function App() {
       {view === "sources" ? (
         <SourcesView
           sources={workspace.sources}
-          onChange={(sources) =>
-            setWorkspace((current) => ({ ...current, sources }))
-          }
+          onChange={updateSources}
           onNotify={notify}
         />
       ) : null}
@@ -403,6 +422,7 @@ function App() {
         <CollectionView
           archive={archive}
           sources={workspace.sources}
+          onSourcesChange={updateSources}
           onNotify={notify}
         />
       ) : null}

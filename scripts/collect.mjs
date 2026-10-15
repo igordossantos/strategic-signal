@@ -27,6 +27,8 @@ const requestedSourceIds = String(
   .split(",")
   .map((item) => item.trim())
   .filter(Boolean);
+const sourceOverridesInput =
+  arg("source-overrides") ?? request.sourceOverrides ?? [];
 const configPath = resolve(
   arg("config") ?? resolve(root, "config", "collection-sources.json"),
 );
@@ -54,7 +56,36 @@ const toEnd = new Date(`${to}T23:59:59.999Z`);
 
 const config = JSON.parse(await readFile(configPath, "utf8"));
 const archive = JSON.parse(await readFile(archivePath, "utf8"));
-const configuredSources = config.sources ?? [];
+let sourceOverrides;
+try {
+  sourceOverrides =
+    typeof sourceOverridesInput === "string"
+      ? JSON.parse(sourceOverridesInput || "[]")
+      : sourceOverridesInput;
+} catch {
+  throw new Error("source-overrides must be valid JSON.");
+}
+if (!Array.isArray(sourceOverrides)) {
+  throw new Error("source-overrides must be a JSON array.");
+}
+for (const source of sourceOverrides) {
+  if (
+    typeof source?.id !== "string" ||
+    typeof source?.name !== "string" ||
+    typeof source?.url !== "string"
+  ) {
+    throw new Error(
+      "Every source override requires string id, name, and url values.",
+    );
+  }
+}
+const configuredSources = [
+  ...(config.sources ?? []).filter(
+    (source) =>
+      !sourceOverrides.some((override) => override.id === source.id),
+  ),
+  ...sourceOverrides,
+];
 const sourceIds = requestedSourceIds.length
   ? requestedSourceIds
   : configuredSources
@@ -293,6 +324,7 @@ const output = {
     to,
     sourceIds,
     topics,
+    sourceOverrides,
   },
   archive: {
     generatedAt: archive.generatedAt,

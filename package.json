@@ -1,7 +1,7 @@
 {
   "name": "strategic-signal",
   "private": true,
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Customer-ready technology intelligence for Data, Analytics, and AI conversations.",
   "type": "module",
   "scripts": {

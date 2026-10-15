@@ -196,6 +196,37 @@ Date: 2026-10-15
 - GitHub Pages run: `38776888825`
 - Production smoke test: normalized lens badges and supporting hashtags rendered, the Farmers lens exposed six powered-by hashtags and six matched current items, and no horizontal overflow was present
 
+## Checkpoint 06 - Who, Where, and Everything
+
+Date: 2026-10-15
+
+### Completed
+
+- Added **Select all** to Who & Where while retaining Select shown, Automatic feeds, and Clear.
+- Added source creation directly inside the collection screen.
+- Added per-row edit and delete controls.
+- Extracted one shared source editor used by both Sources and Collection.
+- Added technology and coverage-tag editing so a person's domain explains the meaning of their content.
+- Added persistent deletion tombstones so imported archive sources do not reappear after reload.
+- Added URL-level duplicate protection and deletion across duplicate source aliases.
+- Added **Everything** and **Specific topics** as explicit What modes.
+- Made Everything the default.
+- Hid the topic input in Everything mode and sent an intentionally empty topic filter.
+- Added browser-local custom source overrides to generated GitHub Actions commands.
+- Added collector validation for custom source overrides.
+
+### Verified behavior
+
+- Select all selected all 41 configured sources.
+- A custom RSS source was created, assigned to Custom AI and Agent Platform, and automatically selected.
+- The source name and technology coverage were edited in place.
+- Everything mode generated `topics=''`.
+- The generated command contained the complete custom source override.
+- The custom source was deleted and remained deleted after reload.
+- An imported source was deleted and remained suppressed through its workspace tombstone.
+- Twenty-three automated tests pass.
+- Lint, TypeScript, production build, source override validation, workspace migration, and responsive layout pass.
+
 ### Known boundaries
 
 - GitHub Pages cannot directly read authenticated LinkedIn content.

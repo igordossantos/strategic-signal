@@ -68,8 +68,10 @@ Constraints to address:
 ### 2. Sources
 
 - Add, edit, enable, disable, search, and remove source definitions.
+- Provide the same add, edit, delete, and all-selection controls directly inside collection planning.
 - Support RSS/Atom, official blogs, documentation, LinkedIn profiles, and manually captured posts.
 - Record trust tier, collection method, coverage tags, and notes.
+- Treat source technology and coverage tags as the context when Everything is selected.
 - Keep edits in the browser by default.
 - Import and export a complete workspace JSON file.
 - Repository-backed sync is a later authenticated enhancement; no token is stored in the public site.
@@ -185,6 +187,9 @@ Exit criteria:
 - [x] Add exact date-window RSS/Atom collection.
 - [x] Add canonical URL and normalized-title deduplication against the imported archive.
 - [x] Add a dedicated Collection screen for who, what, sources, topics, and dates.
+- [x] Add an explicit Everything mode that collects every item from selected people and sources.
+- [x] Add Select all plus source add, edit, and persistent delete controls to Who & Where.
+- [x] Pass browser-local custom sources safely into GitHub Actions as source overrides.
 - [x] Add archive-only reuse and a downloadable collection request.
 - [x] Add a manual GitHub Actions workflow with explicit failure artifacts.
 - [ ] Add durable source-health history and state transitions to published signals.

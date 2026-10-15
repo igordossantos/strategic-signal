@@ -26,6 +26,10 @@ Milestone 1 delivers:
 - Hashtag-powered Priority Lenses: one primary direct-assignment hashtag, supporting topic hashtags, and optional phrase fallbacks.
 - A reusable archive imported from both predecessor projects.
 - A dedicated Collection screen for selecting people, sources, topics, and exact inclusive date windows.
+- Select all, add, edit, and delete controls directly inside Who & Where.
+- Explicit Everything versus Specific topics collection modes.
+- Per-source technology and coverage tags that explain what "everything" from that person represents.
+- Browser-local custom sources embedded into generated GitHub Actions commands as validated source overrides.
 - Archive-only reuse without a new network collection.
 - Date-window RSS/Atom collection through GitHub Actions.
 - Explicit browser-assisted queues for LinkedIn and manual queues for reference sources.
@@ -91,11 +95,13 @@ The production site is generated in `dist/`.
 Open **Collect** in the application to:
 
 1. Choose an inclusive start and end date.
-2. Enter optional topics or technologies.
-3. Select automatic feeds, LinkedIn people, and reference sources.
-4. Reuse matching archive candidates without collecting again.
-5. Prepare a collection request and copy the exact GitHub CLI command.
-6. Open the GitHub Actions workflow and download the resulting JSON artifact.
+2. Choose **Everything** or **Specific topics**.
+3. If needed, enter topics or technologies.
+4. Select all sources or choose automatic feeds, LinkedIn people, and reference sources individually.
+5. Add, edit, or delete sources directly in Who & Where.
+6. Reuse matching archive candidates without collecting again.
+7. Prepare a collection request and copy the exact GitHub CLI command.
+8. Open the GitHub Actions workflow and download the resulting JSON artifact.
 
 Run the collector locally:
 

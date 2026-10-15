@@ -90,6 +90,7 @@ export interface Signal {
 export interface Workspace {
   version: 1;
   sources: Source[];
+  deletedSourceIds: string[];
   guidance: Guidance[];
   pinnedSignalIds: string[];
   itemTags: Record<string, string[]>;
