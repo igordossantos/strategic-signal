@@ -1,0 +1,233 @@
+# Strategic Signal - Implementation Plan
+
+## Product vision
+
+Strategic Signal is a customer-ready technology intelligence hub for Igor Dos Santos. It turns a curated set of official feeds, expert blogs, and selected LinkedIn voices into fast, evidence-backed briefings for Zurich Insurance Group, Farmers Insurance, regional Zurich organizations, and other customer audiences.
+
+The product is intentionally broader than Microsoft Fabric. Its taxonomy supports Microsoft Fabric, Microsoft Foundry, Azure Databricks, Microsoft SQL, Azure AI, data governance, analytics, and adjacent technologies.
+
+Working public URL:
+
+`https://igordossantos.github.io/strategic-signal/`
+
+## What the two prototypes contribute
+
+### `fabcon-barcelona-2026`
+
+Reusable strengths:
+
+- Fast static GitHub Pages delivery with no runtime backend dependency.
+- Customer-ready cards, evidence links, availability status, search, filters, selection, export, print, and shareable views.
+- A strong normalized announcement schema and validation suite.
+- Clear safety language that separates suggested relevance from claims about a customer's environment.
+- A proven GitHub Actions test-and-deploy workflow.
+
+Conference-specific constraints to remove:
+
+- One event and one date window.
+- Fabric-first category model.
+- Relevance text embedded directly in every announcement.
+- Source and guidance data are maintained only by editing JSON.
+
+### `fabric-digest`
+
+Reusable strengths:
+
+- A durable source roster with weights, coverage areas, cadence, and amplifier scoring.
+- Official sources as ground truth; LinkedIn as framing and editorial signal.
+- Explicit evidence grades: confirmed, commentary, and ahead of docs.
+- Protected classes that always surface: breaking changes, hard dates, security, licensing, pricing, and source contradictions.
+- User guidance, learned preferences, archive state, deduplication, and state transitions.
+- Measured LinkedIn limitations rather than assumed automation capabilities.
+
+Constraints to address:
+
+- The current workflow is agent-driven rather than a standalone application.
+- Data is spread across multiple files and digest formats.
+- Source and guidance management are not yet a unified customer-facing experience.
+
+## Core experience
+
+### 1. Briefing
+
+- Search across title, summary, technologies, tags, authors, audiences, and relevance explanations.
+- Filter by audience, technology, section, status, evidence grade, source type, and protected signal type.
+- Sort by strategic relevance, newest, or title.
+- Group cards into two-level collapsible sections, such as:
+  - Microsoft Fabric > Admin & Governance
+  - Microsoft Fabric > Development
+  - Microsoft Foundry > Agent Development
+  - Azure Databricks > Data Engineering
+  - Microsoft SQL > AI & Operational Data
+- Expand individual cards for evidence, linked reading, recommended next step, and all audience mappings.
+- Pin items to a discussion list.
+- Copy or export a concise customer briefing.
+
+### 2. Sources
+
+- Add, edit, enable, disable, search, and remove source definitions.
+- Support RSS/Atom, official blogs, documentation, LinkedIn profiles, and manually captured posts.
+- Record trust tier, collection method, coverage tags, and notes.
+- Keep edits in the browser by default.
+- Import and export a complete workspace JSON file.
+- Repository-backed sync is a later authenticated enhancement; no token is stored in the public site.
+
+### 3. Guidance
+
+- Add dated customer needs and priorities.
+- Assign an audience, priority, effective date, technologies, and matching phrases.
+- Keep guidance local to the browser unless Igor explicitly exports and commits it.
+- Explain every relevance match: which guidance item matched, why it matters, and the confidence of the mapping.
+- Never present guidance-derived relevance as a statement of the customer's deployed environment.
+
+### 4. LinkedIn capture
+
+Unattended scraping is not part of the design. It is brittle, risks automation detection, and cannot be performed from GitHub Pages because of browser origin and authentication boundaries.
+
+The supported path is a user-triggered Edge/Chrome helper:
+
+1. Igor opens a LinkedIn post while signed in.
+2. The helper reads the visible post text and metadata.
+3. It identifies comments visibly marked as authored by the post author.
+4. It captures only links from those author comments.
+5. It exports a normalized JSON record for import into Strategic Signal.
+6. The helper reports incomplete comment coverage when LinkedIn has not rendered the full thread.
+
+This preserves the useful behavior proven by `fabric-digest` without storing credentials or pretending LinkedIn history is enumerable.
+
+## Technical architecture
+
+### Front end
+
+- React 19 + TypeScript + Vite.
+- Static assets deployed to GitHub Pages.
+- No server rendering and no required runtime API calls.
+- Local-first workspace storage using a versioned `localStorage` document.
+- Precomputed lowercase search documents and memoized filtering.
+- Accessible keyboard navigation, visible focus, reduced-motion support, and responsive layout.
+- Clawpilot light/dark theme tokens with no hardcoded component colors.
+
+### Data model
+
+`Signal`
+
+- Identity: id, canonical URL, title, author, published date.
+- Classification: platform, section, tags, status, signal type.
+- Evidence: grade, source ids, verification date, discrepancy note.
+- Content: executive summary, detail bullets, next step, linked reading.
+- Relevance: one or more audience mappings with reason, score, and matching guidance id.
+- Safety: protected class flags and customer-safe boolean.
+
+`Source`
+
+- Identity: id, name, URL.
+- Collection: source type, method, enabled state.
+- Trust: official, expert analysis, community, or social.
+- Routing: platforms and tags.
+- Operations: last checked, health, and notes.
+
+`Guidance`
+
+- Identity: id and title.
+- Audience and need statement.
+- Priority and effective date.
+- Match phrases, technologies, and optional expiration.
+
+### Collection pipeline
+
+Phase 1 ships the customer experience and configuration surfaces with a representative normalized dataset.
+
+Phase 2 adds:
+
+- A scheduled GitHub Action for RSS/Atom and supported public feeds.
+- URL canonicalization and content-hash deduplication.
+- State-transition detection.
+- Optional Azure OpenAI enrichment using repository secrets.
+- A guarded customer-safe publishing step that excludes uncorroborated claims.
+
+Phase 3 adds:
+
+- Browser-helper import for LinkedIn post content and author-comment links.
+- Source health telemetry.
+- A private authenticated configuration service if browser-local guidance is no longer sufficient.
+
+## Delivery phases
+
+### Milestone 1 - Product foundation
+
+- [x] Analyze both prototypes and the deployed FabCon briefing.
+- [x] Select architecture and working product name.
+- [x] Implement the responsive application shell and briefing dashboard.
+- [x] Implement search, filters, sorting, hierarchy, collapse/expand, and pinning.
+- [x] Implement source and guidance management.
+- [x] Implement import/export and browser persistence.
+- [x] Add normalized seed data and customer-safe relevance explanations.
+- [x] Add tests and accessibility checks.
+- [x] Configure GitHub Pages deployment.
+
+Exit criteria:
+
+- The production build succeeds.
+- Core filtering and persistence tests pass.
+- The critical flows work at desktop and mobile widths.
+- No credentials or customer-confidential guidance are committed.
+
+### Milestone 2 - Automated public-source ingestion
+
+- [ ] Add RSS/Atom collectors.
+- [ ] Add deduplication, source health, and state transitions.
+- [ ] Add optional LLM summaries and guidance matching.
+- [ ] Add scheduled refresh workflow with explicit failure reporting.
+- [ ] Add a review gate before customer-safe publication.
+
+Exit criteria:
+
+- A scheduled run produces a deterministic dataset.
+- Every published claim has traceable evidence.
+- Failures are visible in Actions and in source health.
+
+### Milestone 3 - LinkedIn deep capture
+
+- [ ] Build the Edge/Chrome capture helper.
+- [ ] Capture post content and author-comment links.
+- [ ] Detect incomplete or collapsed comment threads.
+- [ ] Import captured records into the review queue.
+- [ ] Document installation and safe operating limits.
+
+Exit criteria:
+
+- No LinkedIn credentials leave the browser.
+- Every capture records coverage limits.
+- Imported links are attributable to the post author.
+
+### Milestone 4 - Private shared workspace
+
+- [ ] Decide whether cross-device/private persistence is required.
+- [ ] If required, add Microsoft Entra ID authentication and a minimal Azure API.
+- [ ] Store private guidance separately from the public GitHub Pages artifact.
+- [ ] Add role-based access and an audit trail.
+
+This milestone is intentionally gated. A public static site must not silently become a store for account-sensitive customer guidance.
+
+## Quality and safety gates
+
+- Every external URL uses HTTPS.
+- Every signal cites at least one source.
+- Customer-facing output includes only confirmed claims or clearly labelled commentary.
+- Protected classes cannot be hidden by preference learning.
+- Dates from LinkedIn remain approximate when LinkedIn supplies relative timestamps.
+- Relevance language uses "could", "may", and "consider"; it does not claim customer adoption.
+- CSV exports neutralize spreadsheet formulas.
+- Imported workspace files are schema-checked before replacing local data.
+- The application contains no API keys, cookies, access tokens, or LinkedIn credentials.
+
+## Current decision log
+
+| Decision | Rationale |
+| --- | --- |
+| Product name: Strategic Signal | Broad enough for Fabric, Foundry, Databricks, SQL, and future topics; professional for customer use. |
+| GitHub Pages for the customer experience | Fast, inexpensive, proven by the FabCon project, and easy to share. |
+| Local-first source and guidance edits | Prevents customer guidance and credentials from being exposed by a public static host. |
+| Official sources outrank social sources | Preserves the evidence discipline established by Fabric Digest. |
+| LinkedIn capture is user-triggered | Works with the signed-in browser session and avoids brittle unattended scraping. |
+| Two-level taxonomy | Supports fast scanning while remaining flexible as the topic set grows. |
