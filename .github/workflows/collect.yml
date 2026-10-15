@@ -57,7 +57,7 @@ jobs:
         run: npm ci
 
       - name: Restore duplicate index
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: data/dedup-index.json
           key: strategic-signal-dedup-${{ github.run_id }}
@@ -93,7 +93,7 @@ jobs:
 
       - name: Save duplicate index
         if: always() && hashFiles('data/dedup-index.json') != ''
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: data/dedup-index.json
           key: strategic-signal-dedup-${{ github.run_id }}

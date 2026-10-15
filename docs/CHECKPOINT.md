@@ -274,6 +274,16 @@ Date: 2026-10-15
 - Twenty-four automated tests pass.
 - Lint, TypeScript, production build, dependency audit, API status loading, and duplicate persistence pass.
 
+### Deployment and proof record
+
+- Release: `1.6.0`
+- Feature commit: `d7d48abaa1876e93d3218cf6a9b0c74151f03a50`
+- GitHub Pages run: `38783065831`
+- First dedup proof run: `38783172429` — one observation, one new item, zero duplicates
+- Second identical proof run: `38783322285` — one observation, zero new items, one `prior-run` duplicate
+- The second duplicate references the exact original Fabric Updates item id.
+- Production status panel displayed all three successful remote runs, durations, artifact availability, API check time, and remaining rate limit with no horizontal overflow.
+
 ### Known boundaries
 
 - GitHub Pages cannot directly read authenticated LinkedIn content.
