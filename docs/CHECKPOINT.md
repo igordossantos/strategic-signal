@@ -189,6 +189,13 @@ Date: 2026-10-15
 - Twenty-two automated tests pass.
 - Lint, TypeScript, production build, dependency audit, direct hashtag assignment, and workspace migration pass.
 
+### Deployment record
+
+- Release: `1.4.0`
+- Release commit: `282bfd07789f768f2b6a4bf2865eb40fda22c3ad`
+- GitHub Pages run: `38776888825`
+- Production smoke test: normalized lens badges and supporting hashtags rendered, the Farmers lens exposed six powered-by hashtags and six matched current items, and no horizontal overflow was present
+
 ### Known boundaries
 
 - GitHub Pages cannot directly read authenticated LinkedIn content.
