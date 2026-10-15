@@ -30,6 +30,9 @@ Milestone 1 delivers:
 - Explicit Everything versus Specific topics collection modes.
 - Per-source technology and coverage tags that explain what "everything" from that person represents.
 - Browser-local custom sources embedded into generated GitHub Actions commands as validated source overrides.
+- Live GitHub Actions execution status with queued, running, succeeded, failed, and cancelled states.
+- Correlation between browser-prepared requests and remote runs through a stable request id.
+- Persistent SHA-256 duplicate detection across the archive, the current run, and prior workflow runs.
 - Archive-only reuse without a new network collection.
 - Date-window RSS/Atom collection through GitHub Actions.
 - Explicit browser-assisted queues for LinkedIn and manual queues for reference sources.
@@ -103,6 +106,34 @@ Open **Collect** in the application to:
 7. Prepare a collection request and copy the exact GitHub CLI command.
 8. Open the GitHub Actions workflow and download the resulting JSON artifact.
 
+The Execution status panel:
+
+- Reads the public GitHub Actions API without storing a token.
+- Refreshes automatically every 90 seconds.
+- Shows run ids, attempts, timestamps, durations, conclusions, and active step progress.
+- Links directly to each GitHub run and its result artifact.
+- Clearly distinguishes a locally prepared request from a workflow that actually started.
+
+## Duplicate detection
+
+Every collected item receives SHA-256 fingerprints for:
+
+- Canonical URL
+- Normalized title
+- Normalized title plus content
+- External source id or feed guid
+
+Each observation is classified as:
+
+- `new`
+- `archive`
+- `prior-run`
+- `same-run`
+
+Only new items are written to the importable `items` collection. Duplicates are
+retained separately with their reason and original item reference for auditing.
+GitHub Actions restores and saves the duplicate index between workflow runs.
+
 Run the collector locally:
 
 ```powershell
@@ -140,6 +171,7 @@ Collection modes:
 | `src/lib/archive.ts` | Runtime archive loading and schema validation |
 | `scripts/import-legacy.mjs` | Repeatable migration from both predecessor projects |
 | `scripts/collect.mjs` | Date-window RSS/Atom collector and assisted-source queue |
+| `src/lib/githubRuns.ts` | Public GitHub Actions run and job status client |
 | `public/data/archive.json` | Normalized reusable intelligence archive |
 | `config/collection-sources.json` | Source capabilities used by collection runs |
 | `.github/workflows/collect.yml` | Manual date-window collection workflow |

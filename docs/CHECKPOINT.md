@@ -234,6 +234,46 @@ Date: 2026-10-15
 - GitHub Pages run: `38778620677`
 - Production smoke test: 41 source rows, Select all selected all 41, Everything was the default with no topic input, 41 edit controls and 41 delete controls rendered, and no horizontal overflow was present
 
+## Checkpoint 07 - Run status and persistent duplicates
+
+Date: 2026-10-15
+
+### Run execution status
+
+- Added a live status panel backed by the public GitHub Actions API.
+- Added queued, running, completed, succeeded, failed, and cancelled states.
+- Added run id, attempt, start time, duration, result-artifact availability, and direct run links.
+- Added active job and step progress.
+- Added bounded 90-second automatic refresh plus manual refresh.
+- Added explicit GitHub API errors and remaining-rate-limit visibility.
+- Added a stable request id to generated commands and workflow run names.
+- Added correlation between locally prepared requests and remote workflow runs.
+- Added an explicit warning when a request is prepared locally but no matching GitHub run exists.
+- Confirmed that the repository currently has one completed successful remote collection run; a newly prepared browser request remains local until Run workflow is completed.
+
+### Duplicate detection
+
+- Added canonical URL fingerprints.
+- Added normalized-title fingerprints.
+- Added normalized title-and-content fingerprints.
+- Added external feed-guid and LinkedIn/blog-id fingerprints.
+- Added archive duplicate classification.
+- Added prior-run duplicate classification.
+- Added same-run duplicate classification.
+- Added duplicate reasons and original item references.
+- Excluded duplicates from the importable `items` list while preserving them in `duplicates`.
+- Added a persisted deduplication index restored and saved through GitHub Actions cache.
+- Added the deduplication index to downloadable run artifacts.
+
+### Validation completed
+
+- A two-entry fixture with the same content produced one new item and one same-run duplicate.
+- Repeating the fixture with the persisted index produced zero new items and two prior-run duplicates.
+- The local status panel loaded the successful remote run and showed its duration and artifact availability.
+- A new prepared request displayed the not-yet-dispatched warning and included its request id in the generated command.
+- Twenty-four automated tests pass.
+- Lint, TypeScript, production build, dependency audit, API status loading, and duplicate persistence pass.
+
 ### Known boundaries
 
 - GitHub Pages cannot directly read authenticated LinkedIn content.

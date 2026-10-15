@@ -16,18 +16,26 @@ import {
   Pencil,
   Play,
   Plus,
+  RefreshCw,
   Rss,
   Search,
   Trash2,
 } from "lucide-react";
 import {
   type FormEvent,
+  useCallback,
   useEffect,
   useMemo,
   useState,
 } from "react";
 import { formatDate, uniqueSorted } from "../lib/signals";
 import { downloadText } from "../lib/workspace";
+import {
+  fetchCollectionRuns,
+  fetchWorkflowJobs,
+  type WorkflowJob,
+  type WorkflowRun,
+} from "../lib/githubRuns";
 import type { ArchiveBundle, Source } from "../types";
 import { SourceEditorModal } from "./SourceEditorModal";
 import { Badge, Button } from "./ui";
@@ -112,6 +120,41 @@ function powerShellQuote(value: string): string {
   return `'${value.replace(/'/g, "''")}'`;
 }
 
+function runStatusLabel(run: WorkflowRun): string {
+  if (run.status !== "completed") {
+    return run.status === "in_progress" ? "Running" : "Queued";
+  }
+  if (run.conclusion === "success") return "Succeeded";
+  if (run.conclusion === "cancelled") return "Cancelled";
+  return run.conclusion ? "Failed" : "Completed";
+}
+
+function runTone(run: WorkflowRun): string {
+  if (run.status !== "completed") return "accent";
+  return run.conclusion === "success" ? "success" : "danger";
+}
+
+function formatTimestamp(value: string | null): string {
+  if (!value) return "Not started";
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
+function durationText(start: string | null, end: string): string {
+  if (!start) return "Waiting";
+  const milliseconds =
+    new Date(end).getTime() - new Date(start).getTime();
+  if (milliseconds < 0 || Number.isNaN(milliseconds)) return "Unknown";
+  const seconds = Math.max(0, Math.round(milliseconds / 1000));
+  return seconds < 60
+    ? `${seconds}s`
+    : `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+}
+
 export function CollectionView({
   archive,
   sources,
@@ -137,6 +180,14 @@ export function CollectionView({
   const [editorSource, setEditorSource] = useState<
     Source | null | undefined
   >(undefined);
+  const [remoteRuns, setRemoteRuns] = useState<WorkflowRun[]>([]);
+  const [activeJobs, setActiveJobs] = useState<WorkflowJob[]>([]);
+  const [runsLoading, setRunsLoading] = useState(true);
+  const [runsError, setRunsError] = useState("");
+  const [runsCheckedAt, setRunsCheckedAt] = useState<string | null>(null);
+  const [rateLimitRemaining, setRateLimitRemaining] = useState<number | null>(
+    null,
+  );
 
   const collectionSources = useMemo(() => {
     const byUrl = new Map<string, Source>();
@@ -157,6 +208,44 @@ export function CollectionView({
       "error",
     );
   }, [initialHistory.error, onNotify]);
+
+  const refreshRuns = useCallback(
+    async (showLoading = false): Promise<void> => {
+      if (showLoading) setRunsLoading(true);
+      try {
+        const result = await fetchCollectionRuns();
+        setRemoteRuns(result.runs);
+        setRateLimitRemaining(result.rateLimitRemaining);
+        const activeRun = result.runs.find(
+          (run) => run.status === "queued" || run.status === "in_progress",
+        );
+        setActiveJobs(
+          activeRun ? await fetchWorkflowJobs(activeRun.id) : [],
+        );
+        setRunsError("");
+        setRunsCheckedAt(new Date().toISOString());
+      } catch (error) {
+        setRunsError(
+          error instanceof Error
+            ? error.message
+            : "Run status could not be loaded.",
+        );
+      } finally {
+        setRunsLoading(false);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    // External workflow state is synchronized on mount and at a bounded interval.
+    // oxlint-disable-next-line react/set-state-in-effect
+    void refreshRuns();
+    const timer = window.setInterval(() => {
+      void refreshRuns();
+    }, 90_000);
+    return () => window.clearInterval(timer);
+  }, [refreshRuns]);
 
   const selectedIds = useMemo(
     () =>
@@ -235,6 +324,10 @@ export function CollectionView({
       (source) => collectionMode(source) === "reference",
     ).length,
   };
+  const latestPrepared = history[0];
+  const correlatedRun = latestPrepared
+    ? remoteRuns.find((run) => run.displayTitle.includes(latestPrepared.id))
+    : undefined;
 
   function updateSelection(id: string): void {
     setSelection(() => {
@@ -334,6 +427,7 @@ export function CollectionView({
     return [
       "gh workflow run collect.yml",
       "--repo igordossantos/strategic-signal",
+      `-f request_id=${powerShellQuote(request.id)}`,
       `-f from=${powerShellQuote(request.from)}`,
       `-f to=${powerShellQuote(request.to)}`,
       `-f source_ids=${powerShellQuote(request.sourceIds.join(","))}`,
@@ -476,6 +570,147 @@ export function CollectionView({
           <strong>{archive?.counts.priorRuns ?? "—"}</strong>
           <small>Including fingerprints and windows</small>
         </div>
+      </section>
+
+      <section
+        className="run-status-panel"
+        aria-labelledby="run-status-title"
+        aria-live="polite"
+      >
+        <div className="run-status-heading">
+          <div>
+            <p className="eyebrow">Execution status</p>
+            <h2 id="run-status-title">Collection workflow runs</h2>
+            <p>
+              Live status comes from the public GitHub Actions API. Running
+              workflows refresh automatically every 90 seconds.
+            </p>
+          </div>
+          <div className="run-status-actions">
+            <span>
+              {runsCheckedAt
+                ? `Checked ${formatTimestamp(runsCheckedAt)}`
+                : "Not checked yet"}
+              {rateLimitRemaining != null
+                ? ` · ${rateLimitRemaining} API requests left`
+                : ""}
+            </span>
+            <Button
+              type="button"
+              variant="secondary"
+              size="small"
+              disabled={runsLoading}
+              onClick={() => void refreshRuns(true)}
+            >
+              <RefreshCw
+                size={15}
+                className={runsLoading ? "status-refreshing" : ""}
+                aria-hidden="true"
+              />
+              Refresh status
+            </Button>
+          </div>
+        </div>
+
+        {runsError ? (
+          <div className="run-status-error" role="alert">
+            <CircleAlert size={18} aria-hidden="true" />
+            <p>{runsError}</p>
+          </div>
+        ) : null}
+
+        {latestPrepared && !correlatedRun ? (
+          <div className="prepared-not-dispatched">
+            <Clock3 size={18} aria-hidden="true" />
+            <div>
+              <strong>Prepared locally, but no matching GitHub run yet</strong>
+              <p>
+                Request <code>{latestPrepared.id}</code> is ready. Copy its
+                command or finish Run workflow in GitHub to start remote
+                execution.
+              </p>
+            </div>
+          </div>
+        ) : null}
+
+        {remoteRuns.length ? (
+          <div className="remote-run-list">
+            {remoteRuns.slice(0, 6).map((run) => {
+              const jobs =
+                run.status === "queued" || run.status === "in_progress"
+                  ? activeJobs
+                  : [];
+              const completedSteps = jobs.flatMap((job) => job.steps).filter(
+                (step) => step.status === "completed",
+              ).length;
+              const totalSteps = jobs.flatMap((job) => job.steps).length;
+              return (
+                <article className="remote-run-card" key={run.id}>
+                  <div
+                    className={`run-state-dot run-state-${run.status === "completed" ? run.conclusion : run.status}`}
+                    aria-hidden="true"
+                  />
+                  <div className="remote-run-content">
+                    <div className="remote-run-title">
+                      <div>
+                        <strong>{run.displayTitle}</strong>
+                        <span>
+                          Run #{run.id} · attempt {run.attempt}
+                        </span>
+                      </div>
+                      <Badge tone={runTone(run)}>{runStatusLabel(run)}</Badge>
+                    </div>
+                    <div className="remote-run-meta">
+                      <span>Started {formatTimestamp(run.startedAt)}</span>
+                      <span>
+                        Duration{" "}
+                        {durationText(
+                          run.startedAt,
+                          run.status === "completed"
+                            ? run.updatedAt
+                            : (runsCheckedAt ?? run.updatedAt),
+                        )}
+                      </span>
+                      {run.conclusion === "success" ? (
+                        <span>Result artifact available</span>
+                      ) : null}
+                    </div>
+                    {totalSteps ? (
+                      <div className="run-progress">
+                        <div>
+                          <span
+                            style={{
+                              width: `${Math.round(
+                                (completedSteps / totalSteps) * 100,
+                              )}%`,
+                            }}
+                          />
+                        </div>
+                        <small>
+                          {completedSteps} of {totalSteps} steps complete
+                        </small>
+                      </div>
+                    ) : null}
+                  </div>
+                  <a
+                    className="button button-quiet button-small"
+                    href={run.url}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                  >
+                    View run
+                    <ExternalLink size={14} aria-hidden="true" />
+                  </a>
+                </article>
+              );
+            })}
+          </div>
+        ) : !runsLoading && !runsError ? (
+          <div className="run-status-empty">
+            <Play size={19} aria-hidden="true" />
+            <p>No remote collection runs were found.</p>
+          </div>
+        ) : null}
       </section>
 
       <div className="info-banner collection-archive-banner">

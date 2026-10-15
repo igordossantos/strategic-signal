@@ -186,6 +186,10 @@ Exit criteria:
 - [x] Add reusable migration for the FabCon briefing, Fabric Digest index, source registry, roster, prior runs, and fingerprints.
 - [x] Add exact date-window RSS/Atom collection.
 - [x] Add canonical URL and normalized-title deduplication against the imported archive.
+- [x] Add SHA-256 URL, title, content, and external-id fingerprints.
+- [x] Persist duplicate fingerprints between GitHub Actions runs.
+- [x] Separate new items from archive, prior-run, and same-run duplicates.
+- [x] Add live run execution status and local-request correlation.
 - [x] Add a dedicated Collection screen for who, what, sources, topics, and dates.
 - [x] Add an explicit Everything mode that collects every item from selected people and sources.
 - [x] Add Select all plus source add, edit, and persistent delete controls to Who & Where.
@@ -235,6 +239,7 @@ This milestone is intentionally gated. A public static site must not silently be
 - Dates from LinkedIn remain approximate when LinkedIn supplies relative timestamps.
 - Relevance language uses "could", "may", and "consider"; it does not claim customer adoption.
 - CSV exports neutralize spreadsheet formulas.
+- Duplicate items remain auditable but are excluded from the importable item list.
 - Imported workspace files are schema-checked before replacing local data.
 - The application contains no API keys, cookies, access tokens, or LinkedIn credentials.
 

@@ -1,5 +1,6 @@
 import { XMLParser } from "fast-xml-parser";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -15,6 +16,7 @@ const requestPath = arg("request");
 const request = requestPath
   ? JSON.parse(await readFile(resolve(requestPath), "utf8"))
   : {};
+const requestId = arg("request-id") ?? request.id;
 const from = arg("from") ?? request.from;
 const to = arg("to") ?? request.to;
 const topics = String(arg("topics") ?? request.topics?.join(",") ?? "")
@@ -35,6 +37,9 @@ const configPath = resolve(
 const archivePath = resolve(
   arg("archive") ?? resolve(root, "public", "data", "archive.json"),
 );
+const dedupIndexPath = resolve(
+  arg("dedup-index") ?? resolve(root, "data", "dedup-index.json"),
+);
 
 function parseDate(value, label) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value ?? "")) {
@@ -53,9 +58,33 @@ if (fromDate > toDate) {
   throw new Error("The from date must be on or before the to date.");
 }
 const toEnd = new Date(`${to}T23:59:59.999Z`);
+const executionRunId =
+  requestId || `collection-${from}-to-${to}-${Date.now().toString(36)}`;
 
 const config = JSON.parse(await readFile(configPath, "utf8"));
 const archive = JSON.parse(await readFile(archivePath, "utf8"));
+let dedupIndex;
+try {
+  dedupIndex = JSON.parse(await readFile(dedupIndexPath, "utf8"));
+} catch (error) {
+  if (error?.code !== "ENOENT") throw error;
+  dedupIndex = {
+    schemaVersion: 1,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    entries: {},
+  };
+}
+if (
+  dedupIndex.schemaVersion !== 1 ||
+  typeof dedupIndex.entries !== "object" ||
+  dedupIndex.entries === null
+) {
+  throw new Error("The duplicate index has an unsupported schema.");
+}
+const priorRunFingerprints = new Map(
+  Object.entries(dedupIndex.entries),
+);
 let sourceOverrides;
 try {
   sourceOverrides =
@@ -120,6 +149,8 @@ const normalize = (value) =>
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
+const sha256 = (value) =>
+  createHash("sha256").update(value).digest("hex");
 const canonicalUrl = (value) => {
   try {
     const url = new URL(value);
@@ -178,14 +209,47 @@ const dateValue = (item) =>
       item.date,
   );
 
-const knownUrls = new Set(
-  (archive.signals ?? [])
-    .flatMap((signal) => signal.links ?? [])
-    .map((link) => canonicalUrl(link.url)),
-);
-const knownTitles = new Map(
-  (archive.signals ?? []).map((signal) => [normalize(signal.title), signal.id]),
-);
+function fingerprintKeys({ externalId, url, title, summary }) {
+  return [
+    ...(externalId
+      ? [`external:${sha256(String(externalId).trim())}`]
+      : []),
+    ...(url ? [`url:${sha256(canonicalUrl(url))}`] : []),
+    ...(title ? [`title:${sha256(normalize(title))}`] : []),
+    ...(title || summary
+      ? [
+          `content:${sha256(
+            `${normalize(title)}\n${normalize(summary).slice(0, 4000)}`,
+          )}`,
+        ]
+      : []),
+  ];
+}
+
+const archiveFingerprints = new Map();
+for (const signal of archive.signals ?? []) {
+  for (const key of fingerprintKeys({
+    title: signal.title,
+    summary: signal.summary,
+  })) {
+    archiveFingerprints.set(key, signal.id);
+  }
+  for (const link of signal.links ?? []) {
+    for (const key of fingerprintKeys({ url: link.url })) {
+      archiveFingerprints.set(key, signal.id);
+    }
+  }
+}
+for (const item of archive.fingerprints?.linkedin ?? []) {
+  for (const key of fingerprintKeys({ externalId: item.urn })) {
+    archiveFingerprints.set(key, item.what ?? item.urn);
+  }
+}
+for (const item of archive.fingerprints?.blog ?? []) {
+  for (const key of fingerprintKeys({ externalId: item.id })) {
+    archiveFingerprints.set(key, item.what ?? item.id);
+  }
+}
 const parser = new XMLParser({
   ignoreAttributes: false,
   attributeNamePrefix: "@_",
@@ -193,6 +257,7 @@ const parser = new XMLParser({
 });
 
 const collected = [];
+const runFingerprints = new Map();
 const queues = [];
 const sourceResults = [];
 
@@ -260,18 +325,40 @@ for (const source of selectedSources) {
       ) {
         continue;
       }
-      const url = canonicalUrl(linkValue(entry.link) || text(entry.guid));
-      const archivedId =
-        (url && knownUrls.has(url)
-          ? (archive.signals ?? []).find((signal) =>
-              (signal.links ?? []).some(
-                (link) => canonicalUrl(link.url) === url,
-              ),
-            )?.id
-          : undefined) ?? knownTitles.get(normalize(title));
-
-      collected.push({
-        id: `${source.id}:${text(entry.guid) || url || normalize(title)}`,
+      const externalId = text(entry.guid);
+      const url = canonicalUrl(linkValue(entry.link) || externalId);
+      const fingerprints = fingerprintKeys({
+        externalId,
+        url,
+        title,
+        summary,
+      });
+      const archiveMatch = fingerprints.find((key) =>
+        archiveFingerprints.has(key),
+      );
+      const priorRunMatch = fingerprints.find(
+        (key) => priorRunFingerprints.has(key),
+      );
+      const sameRunMatch = fingerprints.find((key) =>
+        runFingerprints.has(key),
+      );
+      const duplicateReason = archiveMatch
+        ? "archive"
+        : priorRunMatch
+          ? "prior-run"
+          : sameRunMatch
+            ? "same-run"
+            : null;
+      const duplicateOf = archiveMatch
+        ? archiveFingerprints.get(archiveMatch)
+        : priorRunMatch
+          ? priorRunFingerprints.get(priorRunMatch).itemId
+          : sameRunMatch
+            ? runFingerprints.get(sameRunMatch)
+            : undefined;
+      const itemId = `${source.id}:${externalId || url || normalize(title)}`;
+      const item = {
+        id: itemId,
         sourceId: source.id,
         sourceName: source.name,
         title,
@@ -279,9 +366,31 @@ for (const source of selectedSources) {
         publishedAt: published.toISOString(),
         summary,
         topics,
-        archiveStatus: archivedId ? "already-archived" : "new",
-        ...(archivedId ? { archiveId: archivedId } : {}),
-      });
+        fingerprints,
+        duplicateStatus: duplicateReason ?? "new",
+        ...(duplicateOf ? { duplicateOf } : {}),
+      };
+      collected.push(item);
+      for (const fingerprint of fingerprints) {
+        if (!runFingerprints.has(fingerprint)) {
+          runFingerprints.set(fingerprint, itemId);
+        }
+        const existing = dedupIndex.entries[fingerprint];
+        dedupIndex.entries[fingerprint] = {
+          fingerprint,
+          itemId: existing?.itemId ?? itemId,
+          title,
+          url,
+          firstSeenAt: existing?.firstSeenAt ?? new Date().toISOString(),
+          lastSeenAt: new Date().toISOString(),
+          firstRunId: existing?.firstRunId ?? executionRunId,
+          lastRunId: executionRunId,
+          occurrenceCount: (existing?.occurrenceCount ?? 0) + 1,
+          sourceIds: [
+            ...new Set([...(existing?.sourceIds ?? []), source.id]),
+          ],
+        };
+      }
       sourceItemCount += 1;
     }
     sourceResults.push({
@@ -306,18 +415,17 @@ for (const source of selectedSources) {
   }
 }
 
-const deduplicated = [];
-const seen = new Set();
-for (const item of collected) {
-  const key = item.url || normalize(item.title);
-  if (seen.has(key)) continue;
-  seen.add(key);
-  deduplicated.push(item);
-}
+const newItems = collected.filter(
+  (item) => item.duplicateStatus === "new",
+);
+const duplicates = collected.filter(
+  (item) => item.duplicateStatus !== "new",
+);
+dedupIndex.updatedAt = new Date().toISOString();
 
 const output = {
   schemaVersion: 1,
-  runId: `collection-${from}-to-${to}-${Date.now().toString(36)}`,
+  runId: executionRunId,
   createdAt: new Date().toISOString(),
   request: {
     from,
@@ -329,8 +437,21 @@ const output = {
   archive: {
     generatedAt: archive.generatedAt,
     reusableSignals: archive.counts?.normalizedSignals ?? 0,
-    matchedItems: deduplicated.filter(
-      (item) => item.archiveStatus === "already-archived",
+    matchedItems: duplicates.filter(
+      (item) => item.duplicateStatus === "archive",
+    ).length,
+  },
+  duplicateDetection: {
+    indexPath: dedupIndexPath,
+    fingerprintsTracked: Object.keys(dedupIndex.entries).length,
+    archiveDuplicates: duplicates.filter(
+      (item) => item.duplicateStatus === "archive",
+    ).length,
+    priorRunDuplicates: duplicates.filter(
+      (item) => item.duplicateStatus === "prior-run",
+    ).length,
+    sameRunDuplicates: duplicates.filter(
+      (item) => item.duplicateStatus === "same-run",
     ).length,
   },
   summary: {
@@ -342,12 +463,14 @@ const output = {
     failedSources: sourceResults.filter(
       (result) => result.status === "failed",
     ).length,
-    items: deduplicated.length,
-    newItems: deduplicated.filter((item) => item.archiveStatus === "new")
-      .length,
+    observedItems: collected.length,
+    items: newItems.length,
+    newItems: newItems.length,
+    duplicates: duplicates.length,
   },
   sources: sourceResults,
-  items: deduplicated,
+  items: newItems,
+  duplicates,
   queues,
   issues,
 };
@@ -360,7 +483,12 @@ const defaultOutput = resolve(
 );
 const outputPath = resolve(arg("output") ?? defaultOutput);
 await mkdir(dirname(outputPath), { recursive: true });
+await mkdir(dirname(dedupIndexPath), { recursive: true });
 await writeFile(outputPath, `${JSON.stringify(output, null, 2)}\n`);
+await writeFile(
+  dedupIndexPath,
+  `${JSON.stringify(dedupIndex, null, 2)}\n`,
+);
 
 console.log(JSON.stringify({ outputPath, ...output.summary }, null, 2));
 if (issues.some((issue) => issue.severity === "error")) {
