@@ -330,6 +330,15 @@ Date: 2026-10-15
 - Twenty-nine automated tests pass.
 - Lint, TypeScript, production build, dependency audit, centralization, digest selection, request construction, and digest import pass.
 
+### Deployment record
+
+- Release: `1.7.0`
+- Release commit: `d783f8d7cb4ad46619894931d4ef22fa693b0ec8`
+- GitHub Pages run: `38786510680`
+- Azure digest dry-run workflow: `38786697205` — succeeded and uploaded its request artifact
+- Production smoke test: 11 selectable current items, one-item reading digest generation, Azure secret guidance, AI workflow status refresh from Running to Succeeded, and no horizontal overflow
+- Repository secret inspection found no Azure OpenAI secrets yet; real model execution remains intentionally blocked until Igor configures the endpoint, API key, and deployment.
+
 ### Known boundaries
 
 - GitHub Pages cannot directly read authenticated LinkedIn content.
