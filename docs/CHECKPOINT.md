@@ -281,8 +281,9 @@ Date: 2026-10-15
 - GitHub Pages run: `38783065831`
 - First dedup proof run: `38783172429` — one observation, one new item, zero duplicates
 - Second identical proof run: `38783322285` — one observation, zero new items, one `prior-run` duplicate
+- Third cache-v5 proof run: `38783794867` — zero new items, one `prior-run` duplicate, no deprecated cache-action warning
 - The second duplicate references the exact original Fabric Updates item id.
-- Production status panel displayed all three successful remote runs, durations, artifact availability, API check time, and remaining rate limit with no horizontal overflow.
+- Production status panel displayed the successful remote runs, durations, artifact availability, API check time, and remaining rate limit with no horizontal overflow.
 
 ### Known boundaries
 
